@@ -177,6 +177,63 @@
     q("0493", "contingency", "CI esta verde pero produccion falla por variable ausente. Actua.", [], 0, "Validar configuracion, mitigar, rollback si impacto, paridad de entornos y checks previos.")
   ];
 
+  questions.push(
+    q("0223", "test", "Que comando usarias primero para comprobar conectividad IP basica?", ["ping", "format", "chmod", "git merge"], 0, "ping ayuda a comprobar alcance IP, aunque no prueba todos los servicios."),
+    q("0223", "test", "Si un servicio arranca y se detiene al instante, que revisas?", ["Logs del servicio y dependencias", "Cambiar el monitor", "Borrar usuarios", "Desactivar DNS"], 0, "Los logs y dependencias dan evidencias antes de tocar configuracion."),
+    q("0223", "test", "Principio de minimo privilegio significa...", ["Dar solo permisos necesarios", "Usar siempre administrador", "Compartir contrasenas", "Quitar todos los permisos"], 0, "Reduce impacto de errores o compromisos."),
+    q("0223", "test", "Una copia incremental guarda...", ["Cambios desde la ultima copia", "Todo siempre", "Solo metadatos sin datos", "Nada hasta restaurar"], 0, "La incremental ahorra espacio, pero depende de la cadena de copias."),
+    q("0223", "oral", "Explica diferencia entre proceso, servicio y aplicacion de usuario.", [], 0, "Proceso es ejecucion; servicio trabaja en segundo plano; aplicacion suele interactuar con usuario."),
+    q("0223", "oral", "Como justificarias una politica de backups para una pyme?", [], 0, "Habla de criticidad, frecuencia, retencion, ubicacion, cifrado, pruebas y responsabilidad."),
+    q("0223", "practice", "Disena un procedimiento de restauracion de un archivo borrado por error.", [], 0, "Confirmar version, restaurar a zona segura, verificar integridad y documentar."),
+    q("0223", "practice", "Prepara una ficha de inventario para un equipo de oficina.", [], 0, "Equipo, SO, IP, hardware, software clave, usuario, garantia, incidencias y mantenimiento."),
+    q("0223", "contingency", "Un usuario no puede acceder a una carpeta que ayer si abria.", [], 0, "Comprobar alcance, identidad, grupos, ACL, herencia, ruta, servidor y logs."),
+    q("0223", "contingency", "Tras una actualizacion, una impresora de red deja de funcionar.", [], 0, "Revisar cola, driver, IP, conectividad, permisos, rollback controlado y prueba."),
+
+    q("0226", "test", "Que restriccion evita emails repetidos?", ["UNIQUE", "ORDER BY", "LIMIT", "LEFT JOIN"], 0, "UNIQUE impide duplicados segun la regla definida."),
+    q("0226", "test", "Que operador comprueba ausencia de valor?", ["IS NULL", "= NULL", "LIKE NULL", "NOT 0"], 0, "NULL se compara con IS NULL / IS NOT NULL."),
+    q("0226", "test", "Una clave foranea sirve para...", ["Mantener integridad entre tablas", "Aumentar siempre velocidad", "Eliminar columnas", "Ordenar resultados"], 0, "Referencia una clave de otra tabla y controla relaciones validas."),
+    q("0226", "test", "Que clausula ordena resultados?", ["ORDER BY", "GROUP BY", "HAVING", "CREATE"], 0, "ORDER BY ordena el conjunto final."),
+    q("0226", "oral", "Explica primera, segunda y tercera forma normal con un ejemplo sencillo.", [], 0, "Valores atomicos, dependencias completas y evitar dependencias transitivas."),
+    q("0226", "oral", "Cuando crearias una vista y cuando una tabla real?", [], 0, "Vista para consulta/logica reutilizable; tabla si necesitas persistir datos, rendimiento o historico."),
+    q("0226", "practice", "Consulta clientes con mas de 3 pedidos.", [], 0, "JOIN pedidos, GROUP BY cliente y HAVING COUNT(*) > 3."),
+    q("0226", "practice", "Crea una tabla pedidos con cliente obligatorio y fecha.", [], 0, "Incluye id PK, cliente_id FK NOT NULL, fecha NOT NULL y restricciones utiles."),
+    q("0226", "contingency", "Una consulta que antes iba bien ahora tarda 20 segundos.", [], 0, "Revisar plan, volumen, indices, estadisticas, filtros, locks y cambios recientes."),
+    q("0226", "contingency", "Una importacion CSV falla a mitad y deja datos parciales.", [], 0, "Usar staging, transaccion, validacion previa, rollback y reporte de errores."),
+
+    q("0491", "test", "Que metodo registra un manejador de evento?", ["addEventListener", "queryTable", "httpListen", "sqlJoin"], 0, "addEventListener separa comportamiento de estructura."),
+    q("0491", "test", "Que propiedad cambia una clase CSS?", ["classList", "localStorage", "navigator", "datasetSQL"], 0, "classList permite add, remove, toggle y contains."),
+    q("0491", "test", "Que comprueba response.ok en fetch?", ["Estado HTTP 200-299", "Que JSON existe siempre", "Que no hay red", "Que CSS cargo"], 0, "fetch solo rechaza por fallo de red; HTTP 500 necesita comprobacion."),
+    q("0491", "test", "Para layouts de dos dimensiones conviene...", ["CSS Grid", "Solo br", "Tablas para todo", "eval"], 0, "Grid es adecuado para filas y columnas."),
+    q("0491", "oral", "Como explicarias la delegacion de eventos?", [], 0, "Un listener en contenedor detecta eventos de hijos usando bubbling y closest."),
+    q("0491", "oral", "Que estados debe tener un formulario que envia datos a una API?", [], 0, "Idle, validacion, loading, exito, error recuperable y error de servidor."),
+    q("0491", "practice", "Implementa conceptualmente un buscador que filtra tarjetas mientras escribes.", [], 0, "input event, normalizar texto, filtrar datos, render seguro y mensaje sin resultados."),
+    q("0491", "practice", "Haz una tabla responsive que no rompa en movil.", [], 0, "Replantear columnas, overflow controlado, cards en movil o grid con minmax."),
+    q("0491", "contingency", "Un usuario pulsa guardar dos veces y se duplican datos.", [], 0, "Deshabilitar boton, estado loading, idempotencia con servidor y feedback claro."),
+    q("0491", "contingency", "Una imagen sin alt es clave para entender la pantalla.", [], 0, "Anadir alt descriptivo o texto equivalente; si decorativa, alt vacio."),
+
+    q("0492", "test", "Que codigo HTTP encaja al crear un recurso?", ["201", "301", "404", "500 siempre"], 0, "201 Created indica creacion correcta."),
+    q("0492", "test", "Que cookie reduce acceso desde JavaScript?", ["HttpOnly", "Pretty", "Wide", "JSON"], 0, "HttpOnly mitiga robo de cookie por XSS."),
+    q("0492", "test", "Que respuesta encaja con falta de autenticacion?", ["401", "204", "302 siempre", "100"], 0, "401 indica que falta o falla autenticacion."),
+    q("0492", "test", "Que protege frente a SQL injection?", ["Parametros del driver", "Concatenar strings", "Ocultar formulario", "Cambiar color"], 0, "Los parametros separan datos de codigo SQL."),
+    q("0492", "oral", "Explica como manejarias subida de archivos en servidor.", [], 0, "Validar tipo/tamano, nombre seguro, almacenamiento, permisos, antivirus si procede y errores."),
+    q("0492", "oral", "Como registrarias logs utiles sin exponer secretos?", [], 0, "Nivel, requestId, contexto tecnico, usuario pseudonimizado y enmascarado de tokens."),
+    q("0492", "practice", "Disena login con sesion segura.", [], 0, "Validar, hash seguro, rotar sesion, cookie Secure/HttpOnly/SameSite y rate limit."),
+    q("0492", "practice", "Crea contrato para GET /api/proyectos/:id.", [], 0, "Auth, autorizacion por proyecto, 200 con JSON, 401/403/404, errores consistentes."),
+    q("0492", "contingency", "Suben intentos de login de golpe.", [], 0, "Rate limit, alertas, logs, bloqueo progresivo, MFA y mensajes que no enumeren usuarios."),
+    q("0492", "contingency", "Usuario A ve datos de usuario B cambiando el id.", [], 0, "Fallo IDOR: comprobar ownership/ACL en servidor y anadir pruebas."),
+
+    q("0493", "test", "Que archivo suele fijar versiones npm?", ["package-lock.json", "index.html", "robots.txt", "favicon.ico"], 0, "El lockfile hace instalaciones reproducibles."),
+    q("0493", "test", "Smoke test significa...", ["Comprobacion rapida de que lo esencial funciona", "Test de todos los casos", "Borrar logs", "Cambiar DNS"], 0, "Tras deploy valida flujos criticos sin cubrir todo."),
+    q("0493", "test", "Una variable secreta debe guardarse...", ["En entorno seguro del proveedor", "En README publico", "En codigo fuente", "En comentario HTML"], 0, "Nunca en repos publicos ni artefactos cliente."),
+    q("0493", "test", "Un buen README debe incluir...", ["Instalacion, uso, pruebas y despliegue", "Solo una foto", "Solo licencia", "Nada si la app funciona"], 0, "La documentacion tambien se evalua como capacidad profesional."),
+    q("0493", "oral", "Explica como resolverias un conflicto Git sin perder trabajo.", [], 0, "Entender ambos cambios, integrar comportamiento, tests, diff y commit de merge."),
+    q("0493", "oral", "Como documentarias una incidencia de produccion?", [], 0, "Impacto, hora, sintomas, causa, solucion, verificacion, prevencion y responsables."),
+    q("0493", "practice", "Prepara un plan de rollback para una app desplegada en Vercel.", [], 0, "Identificar version estable, revert/deploy previo, variables compatibles, smoke test y comunicacion."),
+    q("0493", "practice", "Disena un pipeline minimo para una app web.", [], 0, "Checkout, dependencias con lockfile, lint, tests, build, artefacto y deploy condicionado."),
+    q("0493", "contingency", "Hay que desplegar rapido pero los tests fallan.", [], 0, "Valorar impacto, no ignorar fallo sin entenderlo, hotfix acotado o retrasar con comunicacion."),
+    q("0493", "contingency", "Tras deploy suben errores 500 al 20 %.", [], 0, "Pausar, mirar logs/metricas, rollback si impacto, verificar recuperacion y RCA.")
+  );
+
   const phases = [
     ["Semana 1", "Fundamentos reales", ["Leer una leccion de cada ECP", "Completar diagnostico inicial", "Responder 25 test basicos", "Crear carpeta de evidencias"]],
     ["Semana 2", "Practica guiada", ["Resolver 2 casos practicos por modulo", "Escribir respuestas orales", "Corregir todos los fallos", "Preparar README/dossier"]],
@@ -426,7 +483,7 @@
   function startDiagnostic() {
     let idx = 0;
     let right = 0;
-    const pool = modules.flatMap((m) => questions.filter((q) => q.ecp === m.id && q.type === "test").slice(0, 2));
+    const pool = modules.flatMap((m) => questions.filter((q) => q.ecp === m.id && q.type === "test").slice(0, 3));
     const show = () => {
       const item = pool[idx];
       if (!item) {
@@ -447,7 +504,7 @@
   }
 
   function startExam() {
-    currentExam = { i: 0, right: 0, items: shuffle(questions).slice(0, 25) };
+    currentExam = { i: 0, right: 0, items: shuffle(questions).slice(0, 30) };
     renderExam();
   }
 
