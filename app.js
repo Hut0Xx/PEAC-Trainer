@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  const STORE = "peac-trainer-pro-v4";
+  const STORE = "peac-trainer-pro-v5";
   const modules = [
     {
       id: "0223",
@@ -482,7 +482,8 @@
 
   function renderStudyTopic() {
     const id = els.studyModule.value || modules[0].id;
-    const topic = studyTopicsFor(id).find((item) => item.id === els.topicSelect.value) || studyTopicsFor(id)[0];
+    const allTopics = studyTopicsFor(id);
+    const topic = allTopics.find((item) => item.id === els.topicSelect.value) || allTopics[0];
     if (!topic) return;
     els.studyContent.innerHTML = `<article class="topicArticle" data-topic="${esc(topic.id)}">
       <div class="topicHero">
@@ -495,6 +496,16 @@
         <ul class="memoryList">${topic.memory.map((item) => `<li>${esc(item)}</li>`).join("")}</ul>
       </div>
       <div class="notice">Despues de leer: marca el tema, haz el test del tema y escribe una respuesta sin mirar. Ese ciclo es el que mas se parece a defenderte alli.</div>
+      <section class="topicIndex" aria-label="Indice completo del temario">
+        <div class="panelHead"><h3>Todo el temario de este modulo</h3><span class="tag">${allTopics.length} temas</span></div>
+        <div class="topicGrid">
+          ${allTopics.map((item, i) => `<button class="topicJump ${item.id === topic.id ? "active" : ""}" data-topic-jump="${esc(item.id)}">
+            <span>Tema ${i + 1}</span>
+            <strong>${esc(item.title)}</strong>
+            <small>${esc(item.intro)}</small>
+          </button>`).join("")}
+        </div>
+      </section>
     </article>`;
   }
 
@@ -856,6 +867,12 @@
       if (nav) showView(nav.dataset.viewTarget);
       const jump = ev.target.closest("[data-jump]");
       if (jump) document.getElementById(jump.dataset.jump)?.scrollIntoView({ behavior: "smooth" });
+      const topicJump = ev.target.closest("[data-topic-jump]");
+      if (topicJump) {
+        els.topicSelect.value = topicJump.dataset.topicJump;
+        renderStudyTopic();
+        els.studyContent.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
       const score = ev.target.closest("[data-score]");
       if (score) { state.confidence[score.dataset.score] = Number(score.dataset.value); save(); }
       const phase = ev.target.closest("[data-phase]");

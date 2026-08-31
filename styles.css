@@ -179,6 +179,24 @@ textarea { width: 100%; min-height: 130px; resize: vertical; line-height: 1.45; 
 .topicText { color: var(--ink); line-height: 1.7; font-size: 17px; }
 .memoryList { display: grid; gap: 9px; margin: 0; padding: 0; list-style: none; }
 .memoryList li { padding: 11px; border: 1px solid var(--line); border-radius: 8px; background: rgba(255,255,255,.045); line-height: 1.45; }
+.topicIndex { display: grid; gap: 10px; }
+.topicGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
+.topicJump {
+  min-height: 130px;
+  text-align: left;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px;
+  color: var(--ink);
+  background: rgba(255,255,255,.04);
+  display: grid;
+  gap: 7px;
+  cursor: pointer;
+}
+.topicJump.active { border-color: rgba(102,217,194,.75); background: rgba(102,217,194,.11); }
+.topicJump span { color: var(--accent); font-weight: 900; font-size: 12px; }
+.topicJump strong { font-size: 16px; line-height: 1.2; }
+.topicJump small { color: var(--muted); line-height: 1.35; }
 .writtenPrompt { display: grid; gap: 12px; }
 .writtenPrompt textarea { min-height: 260px; font-size: 16px; }
 .rubricBox { display: none; }
