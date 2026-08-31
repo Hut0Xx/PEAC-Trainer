@@ -13,7 +13,7 @@ Aplicacion estatica preparada para Vercel y pensada para entrenar desde cero los
 - Logo propio y nueva interfaz optimizada para movil.
 - Inicio sencillo con accesos a temario, pruebas y simulacro.
 - Ruta de estudio en 4 fases, desde fundamentos hasta entrevista final.
-- Temario de lectura por temas, con puntos que memorizar y seguimiento de repasos.
+- Temario de lectura por temas, con ideas clave reales, practicas relacionadas y evidencias posibles.
 - Test del tema despues de estudiar, para practicar justo lo que acabas de leer.
 - Seccion de respuesta escrita sin opciones, con textarea largo y solucion guia.
 - Entrenamiento mixto: test tecnico, pregunta escrita, entrevista, caso practico, contingencia y minijuego tecnico.

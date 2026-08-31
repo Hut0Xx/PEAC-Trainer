@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  const STORE = "peac-trainer-pro-v6";
+  const STORE = "peac-trainer-pro-v7";
   const modules = [
     {
       id: "0223",
@@ -399,15 +399,29 @@
       ecp: id,
       title: card.front,
       intro: card.back,
-      body: `${card.back} En una acreditacion PEAC no conviene contestar solo con una definicion. Prepara siempre una explicacion que incluya contexto, procedimiento, riesgo tecnico, forma de comprobar el resultado y evidencia que podrias aportar. Si te preguntan algo parecido, empieza por lo esencial y despues aterriza en un ejemplo profesional.`,
-      memory: [
-        `Definicion: ${card.back}`,
-        `Procedimiento: enumera pasos ordenados y evita improvisar cambios sin comprobar.`,
-        `Seguridad: menciona permisos, datos, errores, copias, validacion o acceso segun el caso.`,
-        `Verificacion: explica como sabrias que esta bien hecho y como lo documentarias.`
-      ],
+      body: topicBody(mod, card, i),
+      memory: topicBullets(mod, card, i),
       testIds: questions.filter((q) => q.ecp === id && q.type === "test").slice(i % 3, (i % 3) + 3).map((q) => q.id)
     }));
+  }
+
+  function topicBody(mod, card, i) {
+    const examples = questions.filter((q) => q.ecp === mod.id && q.type !== "test").slice(i % 4, (i % 4) + 2).map((q) => q.prompt.toLowerCase());
+    return `${card.back} Este punto pertenece a ${mod.title}. Estudialo entendiendo para que sirve, en que situaciones aparece y que problema resuelve. En una prueba PEAC te lo pueden pedir como pregunta teorica, caso practico o explicacion de una incidencia. Ejemplos relacionados: ${examples.join("; ")}.`;
+  }
+
+  function topicBullets(mod, card, i) {
+    const must = mod.must[i % mod.must.length];
+    const lesson = mod.lessons[(i + 1) % mod.lessons.length];
+    const evidence = mod.evidence[i % mod.evidence.length];
+    const practice = questions.find((q) => q.ecp === mod.id && q.type === "practice" && q.prompt !== card.front) || questions.find((q) => q.ecp === mod.id && q.type === "contingency");
+    return [
+      `Idea clave: ${card.back}`,
+      `Relacion con el ECP: ${must}`,
+      `Tema conectado: ${lesson[0]} - ${lesson[1]}`,
+      `Practica posible: ${practice ? practice.prompt : "Explicarlo con un ejemplo tecnico propio."}`,
+      `Evidencia que puedes aportar: ${evidence}`
+    ];
   }
 
   function moduleStats(id) {
@@ -500,7 +514,7 @@
         <p class="topicText">${esc(topic.body)}</p>
       </div>
       <div class="lesson">
-        <strong>Lo que tienes que memorizar</strong>
+        <strong>Ideas clave del tema</strong>
         <ul class="memoryList">${topic.memory.map((item) => `<li>${esc(item)}</li>`).join("")}</ul>
       </div>
       <div class="notice">Despues de leer: marca el tema, haz el test del tema y escribe una respuesta sin mirar. Ese ciclo es el que mas se parece a defenderte alli.</div>
