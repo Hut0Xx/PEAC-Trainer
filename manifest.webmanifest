@@ -1,14 +1,14 @@
 {
-  "name": "PEAC Trainer · Andalucía Acredita",
-  "short_name": "PEAC Trainer",
-  "description": "Entrenador móvil para preparar las ECP de Andalucía Acredita.",
+  "name": "PEAC Trainer Pro",
+  "short_name": "PEAC Pro",
+  "description": "Entrenador integral para preparar desde cero las 5 ECP solicitadas en PEAC.",
   "lang": "es",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#070a11",
-  "theme_color": "#070a11",
+  "background_color": "#0f141c",
+  "theme_color": "#10151f",
   "icons": [
     {
       "src": "/icon-192.png",

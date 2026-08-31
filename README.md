@@ -1,40 +1,36 @@
-# PEAC Trainer — Vercel Mobile
+# PEAC Trainer Pro
 
-Proyecto estático listo para Vercel.
+Aplicacion estatica preparada para Vercel y pensada para entrenar desde cero los 5 ECP solicitados:
 
-## Subir a Vercel
-### Opción fácil
-1. Descomprime el ZIP.
-2. Sube esta carpeta a un repositorio de GitHub.
-3. En Vercel: Add New > Project.
-4. Importa el repositorio.
-5. Framework Preset: `Other`.
-6. Build Command: déjalo vacío.
-7. Output Directory: déjalo vacío.
-8. Deploy.
+- `ECP0223_3` - Configurar y explotar sistemas informaticos.
+- `ECP0226_3` - Programar bases de datos relacionales.
+- `ECP0491_3` - Desarrollar elementos software en el entorno cliente.
+- `ECP0492_3` - Desarrollar elementos software en el entorno servidor.
+- `ECP0493_3` - Implementar, verificar y documentar aplicaciones web en entornos Internet, Intranet y Extranet.
 
-También puedes usar Vercel CLI desde esta carpeta con:
-`vercel`
+## Que incluye
 
-## Instalar en el móvil
-### iPhone
-Abre la URL de Vercel en Safari > Compartir > Añadir a pantalla de inicio.
+- Panel de preparacion global con puntuacion por modulo.
+- Ruta de estudio en 4 fases, desde fundamentos hasta entrevista final.
+- Temario esencial y checklist de dominio por cada ECP.
+- Entrenamiento mixto: test tecnico, entrevista, caso practico y contingencia.
+- Simulacro exigente con preguntas mezcladas.
+- Dossier de evidencias por modulo.
+- Exportacion del progreso en texto.
+- PWA instalable y cache offline.
 
-### Android
-Abre la URL en Chrome > menú ⋮ > Instalar aplicación / Añadir a pantalla de inicio.
+## Despliegue
 
-Al instalarse se abre en modo standalone, sin barra del navegador.
+El proyecto no necesita build. En Vercel:
 
-## Incluye
-- 5 ECP
-- preguntas tipo test
-- entrevistas
-- prácticas
-- contingencias
-- sesión diaria
-- simulacro exigente
-- repetición espaciada
-- progreso local por dispositivo
-- PWA y funcionamiento offline
+- Framework Preset: `Other`.
+- Build Command: vacio.
+- Output Directory: vacio.
 
-IMPORTANTE: el progreso se guarda en el navegador/dispositivo mediante localStorage.
+Cada push a `main` redepliega automaticamente si el repositorio esta conectado a Vercel.
+
+## Nota importante
+
+La app ayuda a reducir mucho el riesgo de llegar flojo a la acreditacion, pero la decision final depende del procedimiento PEAC, las evidencias aportadas, la entrevista y la valoracion oficial.
+
+El progreso se guarda localmente en el navegador mediante `localStorage`.
