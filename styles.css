@@ -117,6 +117,7 @@ h3 { margin: 0; font-size: 17px; }
 .split { display: grid; grid-template-columns: 1.25fr .75fr; gap: 14px; }
 .panel { padding: 18px; }
 .panel.wide { width: 100%; }
+.aptoPanel { margin-top: 14px; }
 .panelHead { justify-content: space-between; margin-bottom: 12px; }
 .masteryList { display: grid; gap: 10px; }
 .masteryRow { display: grid; grid-template-columns: 112px minmax(0, 1fr) 56px; gap: 10px; align-items: center; }
@@ -169,6 +170,13 @@ textarea { width: 100%; min-height: 130px; resize: vertical; line-height: 1.45; 
 .evidenceItem strong { display: block; margin-bottom: 4px; }
 .evidenceItem span { color: var(--muted); font-size: 13px; line-height: 1.45; }
 .notice { padding: 12px; border-radius: 8px; border: 1px solid rgba(242,196,109,.25); color: #f5dfaf; background: rgba(242,196,109,.08); line-height: 1.5; }
+.gateBoard { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+.gateCard { border: 1px solid var(--line); border-radius: 8px; padding: 12px; background: rgba(255,255,255,.04); display: grid; gap: 10px; }
+.gateCard.ready { border-color: rgba(128,229,159,.5); background: rgba(128,229,159,.08); }
+.gateCard h3 { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+.gateCard ul { margin: 0; padding-left: 18px; color: var(--muted); font-size: 12px; line-height: 1.45; }
+.gateDot { width: 12px; height: 12px; border-radius: 50%; background: var(--red); flex: 0 0 auto; }
+.gateCard.ready .gateDot { background: var(--green); }
 @media (max-width: 940px) {
   .appShell { grid-template-columns: 1fr; }
   .rail {
@@ -183,7 +191,8 @@ textarea { width: 100%; min-height: 130px; resize: vertical; line-height: 1.45; 
   .heroBand, .split { grid-template-columns: 1fr; }
   .readinessPanel { min-height: 150px; }
   .metricGrid { grid-template-columns: repeat(2, 1fr); }
-  .phaseBoard, .moduleGrid { grid-template-columns: 1fr; }
+  .phaseBoard, .moduleGrid, .gateBoard { grid-template-columns: 1fr; }
+  .toolbar > button, .toolbar > select { flex: 1 1 160px; }
 }
 @media (max-width: 520px) {
   h1 { font-size: 28px; }

@@ -92,6 +92,14 @@
             <div id="diagnosticResult" class="resultBox"></div>
           </section>
         </div>
+
+        <section class="panel wide aptoPanel">
+          <div class="panelHead">
+            <div><h2>Semaforo Apto PEAC</h2><p class="muted">La app solo marca un modulo como blindado cuando cumples test, oral, practica, contingencias y evidencias.</p></div>
+            <button class="miniBtn" data-view-target="trainer">Entrenar ahora</button>
+          </div>
+          <div id="gateBoard" class="gateBoard"></div>
+        </section>
       </section>
 
       <section id="roadmap" class="view">
@@ -119,6 +127,8 @@
           </select>
           <select id="trainModule" aria-label="Modulo de entrenamiento"></select>
           <button class="primaryBtn compact" id="nextActivityBtn">Nueva</button>
+          <button class="secondaryBtn compact" id="weakTestBtn">Test punto debil</button>
+          <button class="secondaryBtn compact" id="reviewWrongBtn">Repasar fallos</button>
         </div>
         <div id="activityBox"></div>
       </section>

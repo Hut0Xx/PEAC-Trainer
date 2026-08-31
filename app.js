@@ -257,6 +257,7 @@
     practices: $("mPractices"),
     evidence: $("mEvidence"),
     mastery: $("masteryList"),
+    gateBoard: $("gateBoard"),
     diagnostic: $("diagnosticResult"),
     phaseBoard: $("phaseBoard"),
     moduleSelect: $("moduleSelect"),
@@ -317,6 +318,37 @@
     return Math.round((testScore * .34 + Math.min(answered / 12, 1) * .12 + confidence * .22 + activity * .18 + ev * .14) * 100);
   }
 
+  function moduleStats(id) {
+    const qs = questions.filter((item) => item.ecp === id && item.type === "test" && state.q[item.id]);
+    const answered = qs.reduce((sum, item) => sum + state.q[item.id].a, 0);
+    const correct = qs.reduce((sum, item) => sum + state.q[item.id].c, 0);
+    const accuracy = answered ? correct / answered : 0;
+    const confidenceOk = (modById(id).must || []).every((_, i) => (state.confidence[`${id}-${i}`] || 0) >= 4);
+    return {
+      answered,
+      accuracy,
+      confidenceOk,
+      oral: state.oral[id] || 0,
+      practice: state.practice[id] || 0,
+      contingency: state.contingency[id] || 0,
+      evidence: evidenceScore(id)
+    };
+  }
+
+  function gateStatus(id) {
+    const s = moduleStats(id);
+    const checks = [
+      ["20 test", s.answered >= 20],
+      ["90% acierto", s.accuracy >= .9],
+      ["Criterios al 4/4", s.confidenceOk],
+      ["3 orales", s.oral >= 3],
+      ["3 practicas", s.practice >= 3],
+      ["2 contingencias", s.contingency >= 2],
+      ["Evidencias 100%", s.evidence >= 1]
+    ];
+    return { checks, ready: checks.every(([, ok]) => ok), stats: s };
+  }
+
   function avg(arr) {
     return arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : 0;
   }
@@ -345,6 +377,7 @@
     els.readyRing.style.strokeDashoffset = String(314 - (314 * ready / 100));
     els.readyLabel.textContent = ready >= 85 ? "Vas con margen, sigue repasando fallos." : ready >= 60 ? "Base seria, faltan huecos por cerrar." : "Todavia hay que construir base y evidencias.";
     els.mastery.innerHTML = modules.map((m) => masteryRow(m)).join("");
+    els.gateBoard.innerHTML = modules.map((m) => gateCard(m)).join("");
     renderModule();
     renderEvidence();
   }
@@ -352,6 +385,18 @@
   function masteryRow(m) {
     const s = scoreModule(m.id);
     return `<div class="masteryRow"><b>${esc(m.code)}</b><div class="barTrack"><div class="barFill" style="width:${s}%"></div></div><strong>${s}%</strong></div>`;
+  }
+
+  function gateCard(m) {
+    const gate = gateStatus(m.id);
+    const s = gate.stats;
+    return `<article class="gateCard ${gate.ready ? "ready" : ""}">
+      <h3><span>${esc(m.code)}</span><i class="gateDot" aria-hidden="true"></i></h3>
+      <ul>
+        ${gate.checks.map(([label, ok]) => `<li>${ok ? "OK" : "Falta"} · ${esc(label)}</li>`).join("")}
+      </ul>
+      <small class="muted">${s.answered} test · ${s.accuracy ? Math.round(s.accuracy * 100) : 0}% acierto</small>
+    </article>`;
   }
 
   function renderPhases() {
@@ -420,6 +465,22 @@
     renderActivity(sorted[Math.floor(Math.random() * Math.min(sorted.length, 6))] || pool[0]);
   }
 
+  function pickWeakTest() {
+    const weakest = modules.slice().sort((a, b) => scoreModule(a.id) - scoreModule(b.id))[0];
+    els.trainMode.value = "test";
+    els.trainModule.value = weakest.id;
+    pickActivity();
+  }
+
+  function reviewWrong() {
+    const wrong = questions.filter((item) => item.type === "test" && state.q[item.id] && state.q[item.id].c < state.q[item.id].a);
+    if (!wrong.length) {
+      els.activityBox.innerHTML = `<article class="activityCard"><h2>No tienes fallos pendientes.</h2><p>Haz un test exigente y aqui apareceran las preguntas que necesiten repaso.</p></article>`;
+      return;
+    }
+    renderActivity(shuffle(wrong)[0]);
+  }
+
   function renderActivity(item) {
     const mod = modById(item.ecp);
     if (item.options.length) {
@@ -468,6 +529,12 @@
       btn.classList.toggle("wrong", n === selected && !ok);
     });
     card.querySelector(".feedback").classList.remove("hidden");
+    const next = document.createElement("button");
+    next.className = "primaryBtn compact";
+    next.style.marginTop = "12px";
+    next.textContent = "Siguiente pregunta";
+    next.addEventListener("click", pickActivity);
+    card.appendChild(next);
     save();
   }
 
@@ -613,7 +680,7 @@
     els.trainMode.addEventListener("change", pickActivity);
     els.trainModule.addEventListener("change", pickActivity);
     $("nextActivityBtn").addEventListener("click", pickActivity);
-    $("startTodayBtn").addEventListener("click", () => { showView("trainer"); todayStudy(); save(); });
+    $("startTodayBtn").addEventListener("click", () => { showView("trainer"); todayStudy(); pickWeakTest(); save(); });
     $("diagnosticBtn").addEventListener("click", startDiagnostic);
     $("markDayBtn").addEventListener("click", () => { todayStudy(); save(); });
     $("weakBtn").addEventListener("click", () => {
@@ -622,6 +689,8 @@
       renderModule();
     });
     $("startExamBtn").addEventListener("click", startExam);
+    $("weakTestBtn").addEventListener("click", pickWeakTest);
+    $("reviewWrongBtn").addEventListener("click", reviewWrong);
     $("exportBtn").addEventListener("click", exportProgress);
     $("copyEvidenceBtn").addEventListener("click", exportProgress);
     $("resetBtn").addEventListener("click", () => {
