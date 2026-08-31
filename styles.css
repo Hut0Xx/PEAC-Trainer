@@ -168,6 +168,21 @@ textarea { width: 100%; min-height: 130px; resize: vertical; line-height: 1.45; 
 .flashAnswer { display: none; color: var(--ink); line-height: 1.6; font-size: 17px; }
 .flashCard.revealed .flashAnswer { display: block; }
 .flashMeta { display: flex; gap: 8px; flex-wrap: wrap; }
+.topicArticle { display: grid; gap: 14px; }
+.topicHero {
+  padding: 18px;
+  border-radius: 8px;
+  border: 1px solid rgba(102,217,194,.25);
+  background: linear-gradient(145deg, rgba(102,217,194,.12), rgba(242,196,109,.08));
+}
+.topicHero h2 { font-size: 28px; line-height: 1.1; margin-bottom: 10px; }
+.topicText { color: var(--ink); line-height: 1.7; font-size: 17px; }
+.memoryList { display: grid; gap: 9px; margin: 0; padding: 0; list-style: none; }
+.memoryList li { padding: 11px; border: 1px solid var(--line); border-radius: 8px; background: rgba(255,255,255,.045); line-height: 1.45; }
+.writtenPrompt { display: grid; gap: 12px; }
+.writtenPrompt textarea { min-height: 260px; font-size: 16px; }
+.rubricBox { display: none; }
+.rubricBox.show { display: grid; gap: 9px; }
 .resultBox:empty { display: none; }
 .optionBtn {
   width: 100%; text-align: left; min-height: 52px; padding: 12px;
@@ -199,7 +214,7 @@ textarea { width: 100%; min-height: 130px; resize: vertical; line-height: 1.45; 
     height: auto; padding: 8px 10px calc(8px + var(--safe-bottom)); border-right: 0; border-top: 1px solid var(--line);
   }
   .brand, .railFoot { display: none; }
-  .navList { grid-template-columns: repeat(7, 1fr); gap: 3px; }
+  .navList { grid-template-columns: repeat(8, 1fr); gap: 3px; }
   .navItem { grid-template-columns: 1fr; justify-items: center; gap: 2px; min-height: 52px; padding: 6px 2px; font-size: 11px; text-align: center; }
   .navItem span { font-size: 17px; }
   .workspace { padding: 20px 14px 88px; }
@@ -211,7 +226,7 @@ textarea { width: 100%; min-height: 130px; resize: vertical; line-height: 1.45; 
 }
 @media (max-width: 520px) {
   h1 { font-size: 28px; }
-  .heroCopy h2 { font-size: 28px; }
+  .heroCopy h2 { font-size: 24px; line-height: 1.12; }
   .heroBand { padding: 18px; }
   .metric strong { font-size: 24px; }
   .masteryRow { grid-template-columns: 86px minmax(0, 1fr) 44px; }
@@ -219,4 +234,7 @@ textarea { width: 100%; min-height: 130px; resize: vertical; line-height: 1.45; 
   .scoreBtns { grid-template-columns: repeat(4, 30px); }
   .flashCard { min-height: 360px; padding: 18px; }
   .flashCard h2 { font-size: 24px; }
+  .topicHero h2 { font-size: 24px; }
+  .topicText { font-size: 16px; }
+  .writtenPrompt textarea { min-height: 320px; }
 }

@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  const STORE = "peac-trainer-pro-v2";
+  const STORE = "peac-trainer-pro-v4";
   const modules = [
     {
       id: "0223",
@@ -299,8 +299,12 @@
     diagnostic: $("diagnosticResult"),
     phaseBoard: $("phaseBoard"),
     studyModule: $("studyModule"),
-    studyBox: $("studyBox"),
+    topicSelect: $("topicSelect"),
+    studyContent: $("studyContent"),
     flashCount: $("flashCount"),
+    writtenModule: $("writtenModule"),
+    writtenBox: $("writtenBox"),
+    writtenCount: $("writtenCount"),
     moduleSelect: $("moduleSelect"),
     moduleDetail: $("moduleDetail"),
     trainMode: $("trainMode"),
@@ -316,7 +320,7 @@
   }
 
   function load() {
-    const base = { answered: 0, correct: 0, lastStudy: "", streak: 0, q: {}, confidence: {}, oral: {}, practice: {}, contingency: {}, evidence: {}, phases: {}, flash: {} };
+    const base = { answered: 0, correct: 0, lastStudy: "", streak: 0, q: {}, confidence: {}, oral: {}, practice: {}, contingency: {}, evidence: {}, phases: {}, flash: {}, topics: {}, written: {} };
     try {
       return Object.assign(base, JSON.parse(localStorage.getItem(STORE) || "{}"));
     } catch (_) {
@@ -373,8 +377,26 @@
   }
 
   function flashMemoryScore(id) {
-    const cards = flashcardsFor(id);
-    return cards.length ? cards.filter((card) => state.flash[card.id]).length / cards.length : 0;
+    const topics = studyTopicsFor(id);
+    return topics.length ? topics.filter((topic) => state.topics[topic.id] || state.flash[topic.id]).length / topics.length : 0;
+  }
+
+  function studyTopicsFor(id) {
+    const mod = modById(id);
+    return flashcardsFor(id).map((card, i) => ({
+      id: card.id,
+      ecp: id,
+      title: card.front,
+      intro: card.back,
+      body: `${card.back} En una acreditacion PEAC no conviene contestar solo con una definicion. Prepara siempre una explicacion que incluya contexto, procedimiento, riesgo tecnico, forma de comprobar el resultado y evidencia que podrias aportar. Si te preguntan algo parecido, empieza por lo esencial y despues aterriza en un ejemplo profesional.`,
+      memory: [
+        `Definicion: ${card.back}`,
+        `Procedimiento: enumera pasos ordenados y evita improvisar cambios sin comprobar.`,
+        `Seguridad: menciona permisos, datos, errores, copias, validacion o acceso segun el caso.`,
+        `Verificacion: explica como sabrias que esta bien hecho y como lo documentarias.`
+      ],
+      testIds: questions.filter((q) => q.ecp === id && q.type === "test").slice(i % 3, (i % 3) + 3).map((q) => q.id)
+    }));
   }
 
   function moduleStats(id) {
@@ -391,7 +413,8 @@
       practice: state.practice[id] || 0,
       contingency: state.contingency[id] || 0,
       evidence: evidenceScore(id),
-      memory: flashMemoryScore(id)
+      memory: flashMemoryScore(id),
+      written: Object.keys(state.written || {}).filter((key) => key.includes(id) && state.written[key]).length
     };
   }
 
@@ -403,6 +426,7 @@
       ["Temario aprendido", s.memory >= .9],
       ["Criterios al 4/4", s.confidenceOk],
       ["3 orales", s.oral >= 3],
+      ["5 escritas", s.written >= 5],
       ["3 practicas", s.practice >= 3],
       ["2 contingencias", s.contingency >= 2],
       ["Evidencias 100%", s.evidence >= 1]
@@ -445,38 +469,58 @@
   }
 
   function renderFlashCount() {
-    const cards = allFlashcards();
-    const known = cards.filter((card) => state.flash[card.id]).length;
-    els.flashCount.textContent = `${known}/${cards.length} aprendidas`;
+    const topics = modules.flatMap((m) => studyTopicsFor(m.id));
+    const known = topics.filter((topic) => state.topics[topic.id] || state.flash[topic.id]).length;
+    els.flashCount.textContent = `${known}/${topics.length} temas leidos`;
   }
 
-  function pickFlash() {
+  function renderTopicOptions() {
     const id = els.studyModule.value || modules[0].id;
-    const cards = flashcardsFor(id);
-    const pending = cards.filter((card) => !state.flash[card.id]);
-    const pool = pending.length ? pending : cards;
-    renderFlash(pool[Math.floor(Math.random() * pool.length)]);
+    els.topicSelect.innerHTML = studyTopicsFor(id).map((topic, i) => `<option value="${esc(topic.id)}">Tema ${i + 1}: ${esc(topic.title)}</option>`).join("");
+    renderStudyTopic();
   }
 
-  function renderFlash(card) {
-    els.studyBox.innerHTML = `<article class="flashCard" data-flash="${esc(card.id)}">
-      <div class="flashMeta"><span class="tag">${esc(modById(card.ecp).code)}</span><span class="tag">${state.flash[card.id] ? "Aprendida" : "Pendiente"}</span></div>
-      <h2>${esc(card.front)}</h2>
-      <p class="flashAnswer">${esc(card.back)}</p>
+  function renderStudyTopic() {
+    const id = els.studyModule.value || modules[0].id;
+    const topic = studyTopicsFor(id).find((item) => item.id === els.topicSelect.value) || studyTopicsFor(id)[0];
+    if (!topic) return;
+    els.studyContent.innerHTML = `<article class="topicArticle" data-topic="${esc(topic.id)}">
+      <div class="topicHero">
+        <div class="flashMeta"><span class="tag">${esc(modById(topic.ecp).code)}</span><span class="tag">${state.topics[topic.id] || state.flash[topic.id] ? "Leido" : "Pendiente"}</span></div>
+        <h2>${esc(topic.title)}</h2>
+        <p class="topicText">${esc(topic.body)}</p>
+      </div>
+      <div class="lesson">
+        <strong>Lo que tienes que memorizar</strong>
+        <ul class="memoryList">${topic.memory.map((item) => `<li>${esc(item)}</li>`).join("")}</ul>
+      </div>
+      <div class="notice">Despues de leer: marca el tema, haz el test del tema y escribe una respuesta sin mirar. Ese ciclo es el que mas se parece a defenderte alli.</div>
     </article>`;
   }
 
-  function revealFlash() {
-    els.studyBox.querySelector(".flashCard")?.classList.add("revealed");
-  }
-
-  function markFlashKnown() {
-    const card = els.studyBox.querySelector("[data-flash]");
-    if (!card) return;
-    state.flash[card.dataset.flash] = true;
+  function markTopicRead() {
+    const topic = els.studyContent.querySelector("[data-topic]");
+    if (!topic) return;
+    state.topics[topic.dataset.topic] = true;
+    state.flash[topic.dataset.topic] = true;
     todayStudy();
     save();
-    pickFlash();
+    renderStudyTopic();
+  }
+
+  function startTopicTest() {
+    const id = els.studyModule.value || modules[0].id;
+    els.trainMode.value = "test";
+    els.trainModule.value = id;
+    showView("trainer");
+    pickActivity();
+  }
+
+  function startTopicWritten() {
+    const id = els.studyModule.value || modules[0].id;
+    els.writtenModule.value = id;
+    showView("written");
+    renderWritten();
   }
 
   function masteryRow(m) {
@@ -492,7 +536,7 @@
       <ul>
         ${gate.checks.map(([label, ok]) => `<li>${ok ? "OK" : "Falta"} · ${esc(label)}</li>`).join("")}
       </ul>
-      <small class="muted">${s.answered} test · ${s.accuracy ? Math.round(s.accuracy * 100) : 0}% acierto · ${Math.round(s.memory * 100)}% temario</small>
+      <small class="muted">${s.answered} test · ${s.accuracy ? Math.round(s.accuracy * 100) : 0}% acierto · ${Math.round(s.memory * 100)}% temario · ${s.written} escritas</small>
     </article>`;
   }
 
@@ -738,17 +782,72 @@
     URL.revokeObjectURL(a.href);
   }
 
+  function writtenPool(moduleId) {
+    const base = questions.filter((item) => item.ecp === moduleId && item.type !== "test");
+    const topicPrompts = studyTopicsFor(moduleId).slice(0, 8).map((topic) => ({
+      id: `written-${topic.id}`,
+      ecp: moduleId,
+      type: "written",
+      prompt: `Explica por escrito: ${topic.title}. Incluye definicion, procedimiento, riesgos, verificacion y evidencia.`,
+      explain: topic.memory.join(" ")
+    }));
+    return [...base, ...topicPrompts];
+  }
+
+  function renderWritten() {
+    const moduleId = els.writtenModule.value || modules[0].id;
+    const pool = writtenPool(moduleId);
+    const item = pool[Math.floor(Math.random() * pool.length)];
+    els.writtenBox.innerHTML = `<article class="writtenPrompt" data-written="${esc(item.id)}" data-module="${esc(moduleId)}">
+      <div class="flashMeta"><span class="tag">${esc(modById(moduleId).code)}</span><span class="tag">Sin opciones</span></div>
+      <h2>${esc(item.prompt)}</h2>
+      <textarea placeholder="Escribe como responderias alli. Minimo recomendado: 8-12 lineas con definicion, pasos, seguridad y verificacion."></textarea>
+      <div class="rubricBox">
+        <div class="lesson"><strong>Rubrica de autocorreccion</strong><p>${esc(item.explain)}</p></div>
+        <ul class="memoryList">
+          <li>He definido el concepto sin rodeos.</li>
+          <li>He explicado pasos concretos, no solo teoria.</li>
+          <li>He mencionado riesgos, seguridad o errores habituales.</li>
+          <li>He cerrado con verificacion, documentacion o evidencia.</li>
+        </ul>
+      </div>
+    </article>`;
+    updateWrittenCount();
+  }
+
+  function showWrittenRubric() {
+    els.writtenBox.querySelector(".rubricBox")?.classList.add("show");
+  }
+
+  function markWrittenDone() {
+    const box = els.writtenBox.querySelector("[data-written]");
+    if (!box) return;
+    const moduleId = box.dataset.module;
+    state.written[box.dataset.written] = true;
+    state.oral[moduleId] = (state.oral[moduleId] || 0) + 1;
+    todayStudy();
+    save();
+    renderWritten();
+  }
+
+  function updateWrittenCount() {
+    const done = Object.keys(state.written || {}).filter((k) => state.written[k]).length;
+    els.writtenCount.textContent = `${done} hechas`;
+  }
+
   function init() {
     modules.forEach((m) => {
       els.moduleSelect.add(new Option(`${m.code} · ${m.title}`, m.id));
       els.trainModule.add(new Option(`${m.code}`, m.id));
       els.studyModule.add(new Option(`${m.code} · ${m.title}`, m.id));
+      els.writtenModule.add(new Option(`${m.code} · ${m.title}`, m.id));
     });
     els.trainModule.add(new Option("Todas", "all"), 0);
     els.trainModule.value = "all";
     renderPhases();
     renderAll();
-    pickFlash();
+    renderTopicOptions();
+    renderWritten();
     pickActivity();
 
     document.querySelectorAll(".navItem").forEach((btn) => btn.addEventListener("click", () => showView(btn.dataset.view)));
@@ -776,13 +875,18 @@
     });
 
     els.moduleSelect.addEventListener("change", renderModule);
-    els.studyModule.addEventListener("change", pickFlash);
+    els.studyModule.addEventListener("change", renderTopicOptions);
+    els.topicSelect.addEventListener("change", renderStudyTopic);
+    els.writtenModule.addEventListener("change", renderWritten);
     els.trainMode.addEventListener("change", pickActivity);
     els.trainModule.addEventListener("change", pickActivity);
     $("nextActivityBtn").addEventListener("click", pickActivity);
-    $("nextFlashBtn").addEventListener("click", pickFlash);
-    $("showFlashBtn").addEventListener("click", revealFlash);
-    $("knownFlashBtn").addEventListener("click", markFlashKnown);
+    $("markTopicBtn").addEventListener("click", markTopicRead);
+    $("topicTestBtn").addEventListener("click", startTopicTest);
+    $("topicWrittenBtn").addEventListener("click", startTopicWritten);
+    $("newWrittenBtn").addEventListener("click", renderWritten);
+    $("showRubricBtn").addEventListener("click", showWrittenRubric);
+    $("markWrittenBtn").addEventListener("click", markWrittenDone);
     $("startTodayBtn").addEventListener("click", () => { showView("trainer"); todayStudy(); pickWeakTest(); save(); });
     $("diagnosticBtn").addEventListener("click", startDiagnostic);
     $("markDayBtn").addEventListener("click", () => { todayStudy(); save(); });
@@ -821,7 +925,7 @@
   function showView(id) {
     document.querySelectorAll(".view").forEach((v) => v.classList.toggle("active", v.id === id));
     document.querySelectorAll(".navItem").forEach((b) => b.classList.toggle("active", b.dataset.view === id));
-    els.title.textContent = ({ dashboard: "Panel de mando", roadmap: "Ruta de estudio", study: "Temario memorizable", modules: "Modulos ECP", trainer: "Entrenamiento", exam: "Simulacro", evidence: "Evidencias" })[id] || "PEAC Trainer";
+    els.title.textContent = ({ dashboard: "Panel de mando", roadmap: "Ruta de estudio", study: "Temario para leer", modules: "Modulos ECP", trainer: "Entrenamiento", written: "Respuesta escrita", exam: "Simulacro", evidence: "Evidencias" })[id] || "PEAC Trainer";
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 

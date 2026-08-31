@@ -34,6 +34,7 @@
         <button class="navItem" data-view="study" title="Temario"><span>◫</span><b>Temario</b></button>
         <button class="navItem" data-view="modules" title="Modulos"><span>▤</span><b>Modulos</b></button>
         <button class="navItem" data-view="trainer" title="Entrenar"><span>◉</span><b>Entrenar</b></button>
+        <button class="navItem" data-view="written" title="Escrita"><span>✎</span><b>Escrita</b></button>
         <button class="navItem" data-view="exam" title="Simulacro"><span>◷</span><b>Simulacro</b></button>
         <button class="navItem" data-view="evidence" title="Evidencias"><span>▣</span><b>Evidencias</b></button>
       </nav>
@@ -115,14 +116,15 @@
       <section id="study" class="view">
         <div class="toolbar">
           <select id="studyModule" aria-label="Modulo de estudio"></select>
-          <button class="primaryBtn compact" id="nextFlashBtn">Nueva ficha</button>
-          <button class="secondaryBtn compact" id="showFlashBtn">Mostrar respuesta</button>
-          <button class="secondaryBtn compact" id="knownFlashBtn">Me lo se</button>
+          <select id="topicSelect" aria-label="Tema de estudio"></select>
+          <button class="primaryBtn compact" id="markTopicBtn">Tema leido</button>
+          <button class="secondaryBtn compact" id="topicTestBtn">Test del tema</button>
+          <button class="secondaryBtn compact" id="topicWrittenBtn">Respuesta escrita</button>
         </div>
         <div class="split">
           <section class="panel">
-            <div class="panelHead"><h2>Fichas de temario</h2><span class="tag" id="flashCount">0 aprendidas</span></div>
-            <div id="studyBox"></div>
+            <div class="panelHead"><h2>Temario para leer</h2><span class="tag" id="flashCount">0 repasos</span></div>
+            <div id="studyContent"></div>
           </section>
           <section class="panel">
             <div class="panelHead"><h2>Metodo antiblanco</h2></div>
@@ -131,6 +133,30 @@
               <div class="lesson"><strong>2. Procedimiento</strong><p>Di los pasos en orden. En PEAC puntua mucho demostrar metodo.</p></div>
               <div class="lesson"><strong>3. Seguridad</strong><p>Aclara permisos, copias, validacion, errores o datos sensibles cuando aplique.</p></div>
               <div class="lesson"><strong>4. Verificacion</strong><p>Cierra con como compruebas que funciona y como lo documentas.</p></div>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section id="written" class="view">
+        <div class="toolbar">
+          <select id="writtenModule" aria-label="Modulo respuesta escrita"></select>
+          <button class="primaryBtn compact" id="newWrittenBtn">Nueva pregunta</button>
+          <button class="secondaryBtn compact" id="showRubricBtn">Ver rubrica</button>
+          <button class="secondaryBtn compact" id="markWrittenBtn">La defenderia</button>
+        </div>
+        <div class="split">
+          <section class="panel">
+            <div class="panelHead"><h2>Respuesta escrita</h2><span class="tag" id="writtenCount">0 hechas</span></div>
+            <div id="writtenBox"></div>
+          </section>
+          <section class="panel">
+            <div class="panelHead"><h2>Plantilla de respuesta fuerte</h2></div>
+            <div class="lessonList">
+              <div class="lesson"><strong>Que es</strong><p>Define el concepto con una frase limpia.</p></div>
+              <div class="lesson"><strong>Como se hace</strong><p>Explica pasos ordenados y herramientas concretas.</p></div>
+              <div class="lesson"><strong>Riesgos</strong><p>Menciona seguridad, errores habituales y como evitarlos.</p></div>
+              <div class="lesson"><strong>Comprobacion</strong><p>Di como verificas, documentas y que evidencia aportarias.</p></div>
             </div>
           </section>
         </div>
