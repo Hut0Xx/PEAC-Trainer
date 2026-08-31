@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  const STORE = "peac-trainer-pro-v7";
+  const STORE = "peac-trainer-pro-v8";
   const modules = [
     {
       id: "0223",
@@ -293,6 +293,7 @@
   const state = load();
   let deferredInstall = null;
   let currentExam = null;
+  let topicScope = null;
 
   const $ = (id) => document.getElementById(id);
   const els = {
@@ -547,6 +548,7 @@
 
   function startTopicTest() {
     const id = els.studyModule.value || modules[0].id;
+    topicScope = els.topicSelect.value;
     els.trainMode.value = "test";
     els.trainModule.value = id;
     showView("trainer");
@@ -555,9 +557,11 @@
 
   function startTopicWritten() {
     const id = els.studyModule.value || modules[0].id;
-    els.writtenModule.value = id;
-    showView("written");
-    renderWritten();
+    topicScope = els.topicSelect.value;
+    els.trainMode.value = "written";
+    els.trainModule.value = id;
+    showView("trainer");
+    pickActivity();
   }
 
   function masteryRow(m) {
@@ -638,11 +642,26 @@
 
   function activityPool(mode, moduleId) {
     const inModule = (item) => moduleId === "all" || item.ecp === moduleId;
+    if (topicScope) {
+      const topic = modules.flatMap((m) => studyTopicsFor(m.id)).find((item) => item.id === topicScope);
+      if (topic) return topicActivityPool(topic, mode);
+    }
     if (mode === "written") {
       const ids = moduleId === "all" ? modules.map((m) => m.id) : [moduleId];
       return ids.flatMap((id) => writtenPool(id)).map((item) => Object.assign({}, item, { type: "written" }));
     }
     return questions.filter((item) => item.type === mode && inModule(item));
+  }
+
+  function topicActivityPool(topic, mode) {
+    const topics = studyTopicsFor(topic.ecp);
+    const index = Math.max(0, topics.findIndex((item) => item.id === topic.id));
+    const source = mode === "written"
+      ? writtenPool(topic.ecp).map((item) => Object.assign({}, item, { type: "written" }))
+      : questions.filter((item) => item.ecp === topic.ecp && item.type === mode);
+    if (!source.length) return [];
+    const size = mode === "test" ? 6 : 4;
+    return Array.from({ length: Math.min(size, source.length) }, (_, i) => source[(index + i) % source.length]);
   }
 
   function pickActivity() {
@@ -671,18 +690,19 @@
 
   function renderActivity(item) {
     const mod = modById(item.ecp);
+    const scopeLabel = topicScope ? modules.flatMap((m) => studyTopicsFor(m.id)).find((topic) => topic.id === topicScope)?.title : "";
     if (item.options.length) {
       els.activityBox.innerHTML = `
         <article class="activityCard" data-qid="${esc(item.id)}">
-          <div class="tagLine"><span class="tag">${esc(mod.code)}</span><span class="tag">Test tecnico</span></div>
+          <div class="tagLine"><span class="tag">${esc(mod.code)}</span><span class="tag">Test tecnico</span>${scopeLabel ? `<span class="tag">Solo tema: ${esc(scopeLabel)}</span>` : `<span class="tag">Todos mezclados</span>`}</div>
           <h2>${esc(item.prompt)}</h2>
-          <div class="optionList">${item.options.map((opt, i) => `<button class="optionBtn" data-answer="${i}">${esc(opt)}</button>`).join("")}</div>
+          <div class="optionList">${optionButtons(item, "data-answer")}</div>
           <div class="feedback hidden">${esc(item.explain)}</div>
         </article>`;
     } else {
       els.activityBox.innerHTML = `
         <article class="activityCard" data-open="${esc(item.id)}">
-          <div class="tagLine"><span class="tag">${esc(mod.code)}</span><span class="tag">${labelType(item.type)}</span></div>
+          <div class="tagLine"><span class="tag">${esc(mod.code)}</span><span class="tag">${labelType(item.type)}</span>${scopeLabel ? `<span class="tag">Solo tema: ${esc(scopeLabel)}</span>` : `<span class="tag">Todos mezclados</span>`}</div>
           <h2>${esc(item.prompt)}</h2>
           <textarea placeholder="${item.type === "game" ? "Resuelve el reto rapido paso a paso" : "Escribe tu respuesta como si estuvieras delante del asesor/evaluador"}"></textarea>
           <div class="rowActions">
@@ -692,6 +712,12 @@
           <div class="feedback hidden">${esc(item.explain)}</div>
         </article>`;
     }
+  }
+
+  function optionButtons(item, attr) {
+    return shuffle(item.options.map((text, index) => ({ text, index })))
+      .map((opt) => `<button class="optionBtn" ${attr}="${opt.index}">${esc(opt.text)}</button>`)
+      .join("");
   }
 
   function labelType(type) {
@@ -760,6 +786,7 @@
   }
 
   function startExam() {
+    topicScope = null;
     const writtenItems = modules.flatMap((m) => writtenPool(m.id).slice(0, 4));
     currentExam = { i: 0, right: 0, items: shuffle([...questions, ...writtenItems]).slice(0, 35) };
     renderExam();
@@ -780,7 +807,7 @@
       <div class="examHeader"><strong>${ex.i + 1}/${ex.items.length}</strong><span>${esc(modById(item.ecp).code)} · ${labelType(item.type)}</span></div>
       <article class="activityCard" data-exam="${esc(item.id)}">
         <h2>${esc(item.prompt)}</h2>
-        ${hasOptions ? `<div class="optionList">${item.options.map((o, i) => `<button class="optionBtn" data-exam-answer="${i}">${esc(o)}</button>`).join("")}</div>` : `<textarea placeholder="Respuesta escrita, oral o practica"></textarea><button class="primaryBtn compact" data-exam-open>He respondido</button>`}
+        ${hasOptions ? `<div class="optionList">${optionButtons(item, "data-exam-answer")}</div>` : `<textarea placeholder="Respuesta escrita, oral o practica"></textarea><button class="primaryBtn compact" data-exam-open>He respondido</button>`}
         <div class="feedback hidden">${esc(item.explain)}</div>
       </article>`;
   }
@@ -932,9 +959,10 @@
     els.studyModule.addEventListener("change", renderTopicOptions);
     els.topicSelect.addEventListener("change", renderStudyTopic);
     els.writtenModule.addEventListener("change", renderWritten);
-    els.trainMode.addEventListener("change", pickActivity);
-    els.trainModule.addEventListener("change", pickActivity);
+    els.trainMode.addEventListener("change", () => { topicScope = null; pickActivity(); });
+    els.trainModule.addEventListener("change", () => { topicScope = null; pickActivity(); });
     $("nextActivityBtn").addEventListener("click", pickActivity);
+    $("allMixedBtn").addEventListener("click", () => { topicScope = null; els.trainModule.value = "all"; pickActivity(); });
     $("markTopicBtn").addEventListener("click", markTopicRead);
     $("topicTestBtn").addEventListener("click", startTopicTest);
     $("topicWrittenBtn").addEventListener("click", startTopicWritten);
