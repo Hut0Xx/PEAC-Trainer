@@ -1,4 +1,4 @@
-# PEAC Trainer Pro
+# PEAC Blindado
 
 Aplicacion estatica preparada para Vercel y pensada para entrenar desde cero los 5 ECP solicitados:
 
@@ -10,11 +10,14 @@ Aplicacion estatica preparada para Vercel y pensada para entrenar desde cero los
 
 ## Que incluye
 
+- Logo propio y nueva interfaz optimizada para movil.
 - Panel de preparacion global con puntuacion por modulo.
 - Ruta de estudio en 4 fases, desde fundamentos hasta entrevista final.
 - Temario esencial y checklist de dominio por cada ECP.
+- Fichas memorizables de temario con respuesta oculta y contador de aprendidas.
 - Entrenamiento mixto: test tecnico, entrevista, caso practico y contingencia.
 - Simulacro exigente con preguntas mezcladas.
+- Semaforo "Apto PEAC" con requisitos estrictos antes de considerar blindado un modulo.
 - Dossier de evidencias por modulo.
 - Exportacion del progreso en texto.
 - PWA instalable y cache offline.

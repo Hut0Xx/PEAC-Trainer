@@ -1,7 +1,7 @@
 {
-  "name": "PEAC Trainer Pro",
-  "short_name": "PEAC Pro",
-  "description": "Entrenador integral para preparar desde cero las 5 ECP solicitadas en PEAC.",
+  "name": "PEAC Blindado",
+  "short_name": "PEAC",
+  "description": "Preparador serio para aprender temario, practicar test, simulacros, evidencias y defensa oral PEAC.",
   "lang": "es",
   "start_url": "/",
   "scope": "/",
@@ -10,6 +10,12 @@
   "background_color": "#0f141c",
   "theme_color": "#10151f",
   "icons": [
+    {
+      "src": "/logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
     {
       "src": "/icon-192.png",
       "sizes": "192x192",

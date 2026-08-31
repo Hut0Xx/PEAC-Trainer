@@ -48,6 +48,7 @@ button { cursor: pointer; touch-action: manipulation; }
   border-radius: 8px; background: linear-gradient(135deg, var(--accent), var(--accent2));
   color: #11161f; font-weight: 950; font-size: 22px;
 }
+.markLogo { background: none; object-fit: contain; }
 .navList { display: grid; gap: 7px; }
 .navItem {
   display: grid; grid-template-columns: 28px 1fr; align-items: center; gap: 10px;
@@ -90,7 +91,7 @@ h3 { margin: 0; font-size: 17px; }
   border: 1px solid var(--line);
   border-radius: 8px;
   background:
-    linear-gradient(135deg, rgba(29,37,49,.92), rgba(23,29,39,.94)),
+    linear-gradient(135deg, rgba(29,37,49,.94), rgba(23,29,39,.96)),
     repeating-linear-gradient(90deg, transparent, transparent 22px, rgba(255,255,255,.04) 23px);
   box-shadow: var(--shadow);
 }
@@ -153,6 +154,20 @@ textarea { width: 100%; min-height: 130px; resize: vertical; line-height: 1.45; 
 .lesson, .rubric, .resultBox {
   padding: 13px; border: 1px solid var(--line); border-radius: 8px; background: rgba(255,255,255,.04);
 }
+.flashCard {
+  min-height: 300px;
+  display: grid;
+  align-content: center;
+  gap: 16px;
+  padding: 22px;
+  border-radius: 8px;
+  border: 1px solid rgba(102,217,194,.28);
+  background: linear-gradient(145deg, rgba(102,217,194,.10), rgba(137,180,255,.08));
+}
+.flashCard h2 { font-size: 27px; line-height: 1.15; }
+.flashAnswer { display: none; color: var(--ink); line-height: 1.6; font-size: 17px; }
+.flashCard.revealed .flashAnswer { display: block; }
+.flashMeta { display: flex; gap: 8px; flex-wrap: wrap; }
 .resultBox:empty { display: none; }
 .optionBtn {
   width: 100%; text-align: left; min-height: 52px; padding: 12px;
@@ -184,7 +199,7 @@ textarea { width: 100%; min-height: 130px; resize: vertical; line-height: 1.45; 
     height: auto; padding: 8px 10px calc(8px + var(--safe-bottom)); border-right: 0; border-top: 1px solid var(--line);
   }
   .brand, .railFoot { display: none; }
-  .navList { grid-template-columns: repeat(6, 1fr); gap: 4px; }
+  .navList { grid-template-columns: repeat(7, 1fr); gap: 3px; }
   .navItem { grid-template-columns: 1fr; justify-items: center; gap: 2px; min-height: 52px; padding: 6px 2px; font-size: 11px; text-align: center; }
   .navItem span { font-size: 17px; }
   .workspace { padding: 20px 14px 88px; }
@@ -202,4 +217,6 @@ textarea { width: 100%; min-height: 130px; resize: vertical; line-height: 1.45; 
   .masteryRow { grid-template-columns: 86px minmax(0, 1fr) 44px; }
   .navItem b { font-size: 10px; }
   .scoreBtns { grid-template-columns: repeat(4, 30px); }
+  .flashCard { min-height: 360px; padding: 18px; }
+  .flashCard h2 { font-size: 24px; }
 }

@@ -234,6 +234,44 @@
     q("0493", "contingency", "Tras deploy suben errores 500 al 20 %.", [], 0, "Pausar, mirar logs/metricas, rollback si impacto, verificar recuperacion y RCA.")
   );
 
+  const extraFlash = {
+    "0223": [
+      ["Metodo de diagnostico por capas", "Alcance del problema, enlace fisico o WiFi, configuracion IP, gateway, DNS, puerto o servicio, firewall, logs y verificacion final."],
+      ["Backup defendible", "Que datos se copian, cada cuanto, donde se guardan, cuanto se retienen, quien responde, como se cifra y como se prueba la restauracion."],
+      ["Permisos profesionales", "Recurso, usuarios o grupos, permisos minimos, herencia, prueba con usuario real, registro del cambio y revision periodica."],
+      ["Maquina virtual", "Hipervisor, SO invitado, CPU/RAM/disco, red NAT o bridge, snapshots, limites y diferencia entre snapshot y backup."],
+      ["Documentacion tecnica", "Fecha, equipo, sintomas, pruebas, cambios realizados, resultado, evidencias y recomendaciones para prevenir repeticion."]
+    ],
+    "0226": [
+      ["Orden logico de SELECT", "FROM y JOIN, WHERE, GROUP BY, HAVING, SELECT, ORDER BY y LIMIT. Esta secuencia evita explicar SQL sin metodo."],
+      ["Normalizacion rapida", "1FN: valores atomicos. 2FN: sin dependencias parciales de clave compuesta. 3FN: sin dependencias transitivas."],
+      ["Transaccion segura", "Abrir transaccion, validar reglas, ejecutar operaciones relacionadas, comprobar filas afectadas, COMMIT si todo va bien y ROLLBACK ante error."],
+      ["Indice justificable", "Se propone por consultas reales: columnas filtradas, unidas u ordenadas; se valida con plan de ejecucion y coste en escrituras."],
+      ["Integridad", "PK identifica, FK relaciona, UNIQUE evita duplicados, NOT NULL obliga valor y CHECK limita reglas simples."]
+    ],
+    "0491": [
+      ["Formulario accesible", "Label asociado, tipo de input correcto, required/min/pattern si aplica, mensajes claros, foco manejado y validacion servidor aparte."],
+      ["Fetch robusto", "Mostrar loading, hacer fetch, comprobar response.ok, parsear JSON, renderizar con textContent, manejar error y evitar doble envio."],
+      ["XSS cliente", "No insertar datos de usuario con innerHTML. Usar textContent o sanitizar por contexto. CSP ayuda, pero no sustituye codificar bien."],
+      ["Responsive serio", "Evitar anchos fijos. Usar Grid/Flex, minmax, max-width, imagenes fluidas, prueba en movil y revisar overflow."],
+      ["Eventos DOM", "Usar addEventListener. Para listas dinamicas, delegar en el contenedor y localizar el elemento con closest."]
+    ],
+    "0492": [
+      ["Endpoint completo", "Metodo, ruta, autenticacion, autorizacion, validacion, accion, persistencia segura, codigos HTTP, respuesta y log con requestId."],
+      ["Autenticacion vs autorizacion", "Autenticacion confirma identidad. Autorizacion comprueba permiso sobre accion y objeto concreto."],
+      ["SQL injection", "Nunca concatenar entrada. Usar parametros del driver, validar tipos y conservar restricciones en base de datos."],
+      ["Sesion segura", "Hash de contrasena, rotacion de id tras login, cookie HttpOnly/Secure/SameSite, expiracion y rate limit."],
+      ["Error seguro", "Cliente recibe mensaje controlado e id de correlacion. Stack, query, tokens y variables quedan fuera de la respuesta."]
+    ],
+    "0493": [
+      ["Flujo Git defendible", "Rama, cambios pequenos, status, diff, tests, commit claro, push, PR o revision, CI verde y merge segun politica."],
+      ["Pipeline minimo", "Checkout, runtime fijado, instalar dependencias con lockfile, lint, tests, build, artefacto y despliegue condicionado."],
+      ["Smoke test", "Tras desplegar, comprobar que lo esencial abre, el flujo critico funciona, no hay errores visibles y logs o health estan correctos."],
+      ["Rollback", "Conocer version estable, revertir codigo o redeploy previo, validar variables/migraciones, ejecutar smoke test y documentar incidente."],
+      ["README profesional", "Instalacion, ejecucion, configuracion, pruebas, despliegue, estructura, decisiones tecnicas y problemas conocidos."]
+    ]
+  };
+
   const phases = [
     ["Semana 1", "Fundamentos reales", ["Leer una leccion de cada ECP", "Completar diagnostico inicial", "Responder 25 test basicos", "Crear carpeta de evidencias"]],
     ["Semana 2", "Practica guiada", ["Resolver 2 casos practicos por modulo", "Escribir respuestas orales", "Corregir todos los fallos", "Preparar README/dossier"]],
@@ -260,6 +298,9 @@
     gateBoard: $("gateBoard"),
     diagnostic: $("diagnosticResult"),
     phaseBoard: $("phaseBoard"),
+    studyModule: $("studyModule"),
+    studyBox: $("studyBox"),
+    flashCount: $("flashCount"),
     moduleSelect: $("moduleSelect"),
     moduleDetail: $("moduleDetail"),
     trainMode: $("trainMode"),
@@ -275,7 +316,7 @@
   }
 
   function load() {
-    const base = { answered: 0, correct: 0, lastStudy: "", streak: 0, q: {}, confidence: {}, oral: {}, practice: {}, contingency: {}, evidence: {}, phases: {} };
+    const base = { answered: 0, correct: 0, lastStudy: "", streak: 0, q: {}, confidence: {}, oral: {}, practice: {}, contingency: {}, evidence: {}, phases: {}, flash: {} };
     try {
       return Object.assign(base, JSON.parse(localStorage.getItem(STORE) || "{}"));
     } catch (_) {
@@ -307,15 +348,33 @@
     return modules.find((m) => m.id === id) || modules[0];
   }
 
+  function flashcardsFor(id) {
+    const mod = modById(id);
+    const lessonCards = mod.lessons.map(([front, back]) => ({ id: `${id}-lesson-${front}`, ecp: id, front, back }));
+    const criteriaCards = mod.must.map((item, i) => ({ id: `${id}-must-${i}`, ecp: id, front: `Criterio defendible ${i + 1}`, back: item }));
+    const extraCards = (extraFlash[id] || []).map(([front, back]) => ({ id: `${id}-extra-${front}`, ecp: id, front, back }));
+    return [...lessonCards, ...criteriaCards, ...extraCards];
+  }
+
+  function allFlashcards() {
+    return modules.flatMap((m) => flashcardsFor(m.id));
+  }
+
   function scoreModule(id) {
     const qs = questions.filter((item) => item.ecp === id && state.q[item.id]);
     const answered = qs.reduce((sum, item) => sum + state.q[item.id].a, 0);
     const correct = qs.reduce((sum, item) => sum + state.q[item.id].c, 0);
     const testScore = answered ? correct / answered : 0;
+    const memoryScore = flashMemoryScore(id);
     const confidence = avg((modById(id).must || []).map((_, i) => state.confidence[`${id}-${i}`] || 0)) / 4;
     const activity = (Math.min(state.oral[id] || 0, 4) + Math.min(state.practice[id] || 0, 4) + Math.min(state.contingency[id] || 0, 3)) / 11;
     const ev = evidenceScore(id);
-    return Math.round((testScore * .34 + Math.min(answered / 12, 1) * .12 + confidence * .22 + activity * .18 + ev * .14) * 100);
+    return Math.round((testScore * .30 + Math.min(answered / 20, 1) * .10 + memoryScore * .16 + confidence * .20 + activity * .14 + ev * .10) * 100);
+  }
+
+  function flashMemoryScore(id) {
+    const cards = flashcardsFor(id);
+    return cards.length ? cards.filter((card) => state.flash[card.id]).length / cards.length : 0;
   }
 
   function moduleStats(id) {
@@ -331,7 +390,8 @@
       oral: state.oral[id] || 0,
       practice: state.practice[id] || 0,
       contingency: state.contingency[id] || 0,
-      evidence: evidenceScore(id)
+      evidence: evidenceScore(id),
+      memory: flashMemoryScore(id)
     };
   }
 
@@ -340,6 +400,7 @@
     const checks = [
       ["20 test", s.answered >= 20],
       ["90% acierto", s.accuracy >= .9],
+      ["Temario aprendido", s.memory >= .9],
       ["Criterios al 4/4", s.confidenceOk],
       ["3 orales", s.oral >= 3],
       ["3 practicas", s.practice >= 3],
@@ -378,8 +439,44 @@
     els.readyLabel.textContent = ready >= 85 ? "Vas con margen, sigue repasando fallos." : ready >= 60 ? "Base seria, faltan huecos por cerrar." : "Todavia hay que construir base y evidencias.";
     els.mastery.innerHTML = modules.map((m) => masteryRow(m)).join("");
     els.gateBoard.innerHTML = modules.map((m) => gateCard(m)).join("");
+    renderFlashCount();
     renderModule();
     renderEvidence();
+  }
+
+  function renderFlashCount() {
+    const cards = allFlashcards();
+    const known = cards.filter((card) => state.flash[card.id]).length;
+    els.flashCount.textContent = `${known}/${cards.length} aprendidas`;
+  }
+
+  function pickFlash() {
+    const id = els.studyModule.value || modules[0].id;
+    const cards = flashcardsFor(id);
+    const pending = cards.filter((card) => !state.flash[card.id]);
+    const pool = pending.length ? pending : cards;
+    renderFlash(pool[Math.floor(Math.random() * pool.length)]);
+  }
+
+  function renderFlash(card) {
+    els.studyBox.innerHTML = `<article class="flashCard" data-flash="${esc(card.id)}">
+      <div class="flashMeta"><span class="tag">${esc(modById(card.ecp).code)}</span><span class="tag">${state.flash[card.id] ? "Aprendida" : "Pendiente"}</span></div>
+      <h2>${esc(card.front)}</h2>
+      <p class="flashAnswer">${esc(card.back)}</p>
+    </article>`;
+  }
+
+  function revealFlash() {
+    els.studyBox.querySelector(".flashCard")?.classList.add("revealed");
+  }
+
+  function markFlashKnown() {
+    const card = els.studyBox.querySelector("[data-flash]");
+    if (!card) return;
+    state.flash[card.dataset.flash] = true;
+    todayStudy();
+    save();
+    pickFlash();
   }
 
   function masteryRow(m) {
@@ -395,7 +492,7 @@
       <ul>
         ${gate.checks.map(([label, ok]) => `<li>${ok ? "OK" : "Falta"} · ${esc(label)}</li>`).join("")}
       </ul>
-      <small class="muted">${s.answered} test · ${s.accuracy ? Math.round(s.accuracy * 100) : 0}% acierto</small>
+      <small class="muted">${s.answered} test · ${s.accuracy ? Math.round(s.accuracy * 100) : 0}% acierto · ${Math.round(s.memory * 100)}% temario</small>
     </article>`;
   }
 
@@ -645,11 +742,13 @@
     modules.forEach((m) => {
       els.moduleSelect.add(new Option(`${m.code} · ${m.title}`, m.id));
       els.trainModule.add(new Option(`${m.code}`, m.id));
+      els.studyModule.add(new Option(`${m.code} · ${m.title}`, m.id));
     });
     els.trainModule.add(new Option("Todas", "all"), 0);
     els.trainModule.value = "all";
     renderPhases();
     renderAll();
+    pickFlash();
     pickActivity();
 
     document.querySelectorAll(".navItem").forEach((btn) => btn.addEventListener("click", () => showView(btn.dataset.view)));
@@ -677,9 +776,13 @@
     });
 
     els.moduleSelect.addEventListener("change", renderModule);
+    els.studyModule.addEventListener("change", pickFlash);
     els.trainMode.addEventListener("change", pickActivity);
     els.trainModule.addEventListener("change", pickActivity);
     $("nextActivityBtn").addEventListener("click", pickActivity);
+    $("nextFlashBtn").addEventListener("click", pickFlash);
+    $("showFlashBtn").addEventListener("click", revealFlash);
+    $("knownFlashBtn").addEventListener("click", markFlashKnown);
     $("startTodayBtn").addEventListener("click", () => { showView("trainer"); todayStudy(); pickWeakTest(); save(); });
     $("diagnosticBtn").addEventListener("click", startDiagnostic);
     $("markDayBtn").addEventListener("click", () => { todayStudy(); save(); });
@@ -718,7 +821,7 @@
   function showView(id) {
     document.querySelectorAll(".view").forEach((v) => v.classList.toggle("active", v.id === id));
     document.querySelectorAll(".navItem").forEach((b) => b.classList.toggle("active", b.dataset.view === id));
-    els.title.textContent = ({ dashboard: "Panel de mando", roadmap: "Ruta de estudio", modules: "Modulos ECP", trainer: "Entrenamiento", exam: "Simulacro", evidence: "Evidencias" })[id] || "PEAC Trainer";
+    els.title.textContent = ({ dashboard: "Panel de mando", roadmap: "Ruta de estudio", study: "Temario memorizable", modules: "Modulos ECP", trainer: "Entrenamiento", exam: "Simulacro", evidence: "Evidencias" })[id] || "PEAC Trainer";
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 

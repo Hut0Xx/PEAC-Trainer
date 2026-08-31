@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title desc">
+  <title id="title">PEAC Trainer Pro</title>
+  <desc id="desc">Escudo con letra P, circuito y marca de acreditacion.</desc>
+  <defs>
+    <linearGradient id="g" x1="18" y1="16" x2="110" y2="112" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#66d9c2"/>
+      <stop offset=".52" stop-color="#89b4ff"/>
+      <stop offset="1" stop-color="#f2c46d"/>
+    </linearGradient>
+  </defs>
+  <path fill="#10151f" d="M64 8 112 26v34c0 30-18 50-48 60-30-10-48-30-48-60V26L64 8Z"/>
+  <path fill="url(#g)" d="M64 14 105 30v30c0 25-14 43-41 53-27-10-41-28-41-53V30l41-16Z"/>
+  <path fill="#10151f" d="M40 35h29c17 0 27 9 27 23 0 15-10 24-27 24H56v21H40V35Zm16 14v19h12c7 0 11-3 11-10s-4-9-11-9H56Z"/>
+  <path fill="none" stroke="#10151f" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" d="m74 94 9 9 22-29"/>
+  <path fill="none" stroke="#10151f" stroke-width="4" stroke-linecap="round" d="M28 61h12M88 43h12M88 64h16M28 84h12"/>
+</svg>
