@@ -1,14 +1,14 @@
 {
   "name": "PEAC Blindado",
   "short_name": "PEAC",
-  "description": "Preparador serio para aprender temario, practicar test, simulacros, evidencias y defensa oral PEAC.",
+  "description": "Preparador PEAC para leer temario, practicar test, respuestas escritas, casos practicos, retos y simulacros.",
   "lang": "es",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#0f141c",
-  "theme_color": "#10151f",
+  "background_color": "#050505",
+  "theme_color": "#050505",
   "icons": [
     {
       "src": "/logo.svg",

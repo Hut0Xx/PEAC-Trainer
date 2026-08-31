@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#10151f">
+  <meta name="theme-color" content="#050505">
   <meta name="color-scheme" content="dark">
   <meta name="description" content="Entrenador PEAC para preparar ECP desde cero con tests, entrevista, practica, evidencias y simulacros.">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -25,18 +25,16 @@
         <img class="mark markLogo" src="/logo.svg" alt="" aria-hidden="true">
         <div>
           <strong>PEAC Blindado</strong>
-          <span>Preparacion seria desde cero</span>
+          <span>Temario y simulacros PEAC</span>
         </div>
       </div>
       <nav class="navList">
         <button class="navItem active" data-view="dashboard" title="Inicio"><span>⌂</span><b>Inicio</b></button>
-        <button class="navItem" data-view="roadmap" title="Ruta"><span>▥</span><b>Ruta</b></button>
-        <button class="navItem" data-view="study" title="Temario"><span>◫</span><b>Temario</b></button>
-        <button class="navItem" data-view="modules" title="Modulos"><span>▤</span><b>Modulos</b></button>
-        <button class="navItem" data-view="trainer" title="Entrenar"><span>◉</span><b>Entrenar</b></button>
+        <button class="navItem" data-view="study" title="Temario"><span>▤</span><b>Temario</b></button>
+        <button class="navItem" data-view="trainer" title="Pruebas"><span>◉</span><b>Pruebas</b></button>
         <button class="navItem" data-view="written" title="Escrita"><span>✎</span><b>Escrita</b></button>
+        <button class="navItem" data-view="modules" title="Practicas"><span>▥</span><b>Practicas</b></button>
         <button class="navItem" data-view="exam" title="Simulacro"><span>◷</span><b>Simulacro</b></button>
-        <button class="navItem" data-view="evidence" title="Evidencias"><span>▣</span><b>Evidencias</b></button>
       </nav>
       <div class="railFoot">
         <span id="streakText">0 dias seguidos</span>
@@ -47,7 +45,7 @@
     <main class="workspace">
       <section class="topbar">
         <div>
-          <p class="eyebrow">Objetivo: responder con margen cualquier pregunta razonable</p>
+          <p class="eyebrow">Objetivo: estudiar, practicar y defender los 5 ECP</p>
           <h1 id="viewTitle">Panel de mando</h1>
         </div>
         <div class="topActions">
@@ -59,13 +57,13 @@
       <section id="dashboard" class="view active">
         <div class="heroBand">
           <div class="heroCopy">
-            <span class="statusBadge">Modo blindaje PEAC</span>
-            <h2>Temario, test, simulacros y defensa oral para no quedarte en blanco.</h2>
-            <p>La app cruza memoria, aciertos, seguridad declarada, practicas, oral y evidencias. No te deja dar un modulo por fuerte si falta una parte defendible.</p>
+            <span class="statusBadge">Preparador PEAC</span>
+            <h2>Lee el temario, practica preguntas reales y simula la defensa completa.</h2>
+            <p>Entra, estudia un ECP, responde sin opciones, resuelve casos practicos y haz simulacros mezclados. La app esta pensada para que entrenes lo que te pueden pedir de forma oral, escrita o practica.</p>
             <div class="heroActions">
-              <button class="primaryBtn" id="startTodayBtn">Empezar sesion de hoy</button>
-              <button class="secondaryBtn" data-view-target="study">Aprender temario</button>
-              <button class="secondaryBtn" data-jump="diagnostic">Diagnostico inicial</button>
+              <button class="primaryBtn" data-view-target="study">Leer temario</button>
+              <button class="secondaryBtn" data-view-target="trainer">Hacer pruebas</button>
+              <button class="secondaryBtn" data-view-target="exam">Simulacro real</button>
             </div>
           </div>
           <div class="readinessPanel" aria-label="Preparacion global">
@@ -87,19 +85,19 @@
 
         <div class="split">
           <section class="panel">
-            <div class="panelHead"><h2>Mapa de dominio</h2><button class="miniBtn" data-view-target="modules">Abrir</button></div>
+            <div class="panelHead"><h2>Que estudiar</h2><button class="miniBtn" data-view-target="study">Abrir</button></div>
             <div id="masteryList" class="masteryList"></div>
           </section>
           <section class="panel" id="diagnostic">
-            <div class="panelHead"><h2>Diagnostico inicial</h2><button class="miniBtn" id="diagnosticBtn">Lanzar</button></div>
-            <p class="muted">15 preguntas mixtas para saber por donde empezar. Si fallas una base, la app baja el nivel y te manda a fundamentos.</p>
+            <div class="panelHead"><h2>Test rapido</h2><button class="miniBtn" id="diagnosticBtn">Lanzar</button></div>
+            <p class="muted">15 preguntas mezcladas para calentar antes de estudiar o entrenar.</p>
             <div id="diagnosticResult" class="resultBox"></div>
           </section>
         </div>
 
         <section class="panel wide aptoPanel">
           <div class="panelHead">
-            <div><h2>Semaforo Apto PEAC</h2><p class="muted">La app solo marca un modulo como blindado cuando cumples test, oral, practica, contingencias y evidencias.</p></div>
+            <div><h2>Blindaje por ECP</h2><p class="muted">Resumen automatico de lo que ya has trabajado: temario, test, escrita, entrevista, practica y contingencias.</p></div>
             <button class="miniBtn" data-view-target="trainer">Entrenar ahora</button>
           </div>
           <div id="gateBoard" class="gateBoard"></div>
@@ -117,13 +115,13 @@
         <div class="toolbar">
           <select id="studyModule" aria-label="Modulo de estudio"></select>
           <select id="topicSelect" aria-label="Tema de estudio"></select>
-          <button class="primaryBtn compact" id="markTopicBtn">Tema leido</button>
+          <button class="primaryBtn compact" id="markTopicBtn">Marcar leido</button>
           <button class="secondaryBtn compact" id="topicTestBtn">Test del tema</button>
           <button class="secondaryBtn compact" id="topicWrittenBtn">Respuesta escrita</button>
         </div>
         <div class="split">
           <section class="panel">
-            <div class="panelHead"><h2>Temario para leer</h2><span class="tag" id="flashCount">0 repasos</span></div>
+            <div class="panelHead"><h2>Temario completo para leer</h2><span class="tag" id="flashCount">0 leidos</span></div>
             <div id="studyContent"></div>
           </section>
           <section class="panel">
@@ -142,8 +140,8 @@
         <div class="toolbar">
           <select id="writtenModule" aria-label="Modulo respuesta escrita"></select>
           <button class="primaryBtn compact" id="newWrittenBtn">Nueva pregunta</button>
-          <button class="secondaryBtn compact" id="showRubricBtn">Ver rubrica</button>
-          <button class="secondaryBtn compact" id="markWrittenBtn">La defenderia</button>
+          <button class="secondaryBtn compact" id="showRubricBtn">Ver solucion guia</button>
+          <button class="secondaryBtn compact" id="markWrittenBtn">He respondido</button>
         </div>
         <div class="split">
           <section class="panel">
@@ -151,7 +149,7 @@
             <div id="writtenBox"></div>
           </section>
           <section class="panel">
-            <div class="panelHead"><h2>Plantilla de respuesta fuerte</h2></div>
+            <div class="panelHead"><h2>Como escribir bien</h2></div>
             <div class="lessonList">
               <div class="lesson"><strong>Que es</strong><p>Define el concepto con una frase limpia.</p></div>
               <div class="lesson"><strong>Como se hace</strong><p>Explica pasos ordenados y herramientas concretas.</p></div>
@@ -165,7 +163,7 @@
       <section id="modules" class="view">
         <div class="toolbar">
           <select id="moduleSelect" aria-label="Seleccionar modulo"></select>
-          <button class="secondaryBtn compact" id="weakBtn">Puntos debiles</button>
+          <button class="secondaryBtn compact" id="weakBtn">Practica recomendada</button>
         </div>
         <div id="moduleDetail"></div>
       </section>
@@ -174,14 +172,16 @@
         <div class="toolbar">
           <select id="trainMode" aria-label="Tipo de entrenamiento">
             <option value="test">Test tecnico</option>
+            <option value="written">Pregunta escrita</option>
             <option value="oral">Entrevista PEAC</option>
             <option value="practice">Caso practico</option>
             <option value="contingency">Contingencia</option>
+            <option value="game">Minijuego tecnico</option>
           </select>
           <select id="trainModule" aria-label="Modulo de entrenamiento"></select>
           <button class="primaryBtn compact" id="nextActivityBtn">Nueva</button>
-          <button class="secondaryBtn compact" id="weakTestBtn">Test punto debil</button>
-          <button class="secondaryBtn compact" id="reviewWrongBtn">Repasar fallos</button>
+          <button class="secondaryBtn compact" id="weakTestBtn">Recomendado</button>
+          <button class="secondaryBtn compact" id="reviewWrongBtn">Fallos</button>
         </div>
         <div id="activityBox"></div>
       </section>
@@ -189,7 +189,7 @@
       <section id="exam" class="view">
         <div class="panel wide">
           <div class="panelHead">
-            <div><h2>Simulacro exigente</h2><p class="muted">30 pruebas mezcladas: teoria, decisiones, oral y contingencias.</p></div>
+            <div><h2>Simulacro realista</h2><p class="muted">Mezcla test, respuestas escritas, entrevista, casos practicos, contingencias y retos rapidos.</p></div>
             <button class="primaryBtn compact" id="startExamBtn">Iniciar</button>
           </div>
           <div id="examBox"></div>

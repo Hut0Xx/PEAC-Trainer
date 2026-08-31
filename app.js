@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  const STORE = "peac-trainer-pro-v5";
+  const STORE = "peac-trainer-pro-v6";
   const modules = [
     {
       id: "0223",
@@ -231,7 +231,18 @@
     q("0493", "practice", "Prepara un plan de rollback para una app desplegada en Vercel.", [], 0, "Identificar version estable, revert/deploy previo, variables compatibles, smoke test y comunicacion."),
     q("0493", "practice", "Disena un pipeline minimo para una app web.", [], 0, "Checkout, dependencias con lockfile, lint, tests, build, artefacto y deploy condicionado."),
     q("0493", "contingency", "Hay que desplegar rapido pero los tests fallan.", [], 0, "Valorar impacto, no ignorar fallo sin entenderlo, hotfix acotado o retrasar con comunicacion."),
-    q("0493", "contingency", "Tras deploy suben errores 500 al 20 %.", [], 0, "Pausar, mirar logs/metricas, rollback si impacto, verificar recuperacion y RCA.")
+    q("0493", "contingency", "Tras deploy suben errores 500 al 20 %.", [], 0, "Pausar, mirar logs/metricas, rollback si impacto, verificar recuperacion y RCA."),
+
+    q("0223", "game", "Ordena el diagnostico: no hay acceso a una web interna.", [], 0, "Ruta fuerte: alcance, DNS, ping/gateway, puerto, firewall, servicio, logs y prueba final."),
+    q("0223", "game", "Reto express: di 5 datos de un informe de incidencia.", [], 0, "Sintoma, entorno, pruebas, causa, solucion, verificacion, prevencion y fecha."),
+    q("0226", "game", "Mini SQL: clientes sin pedidos.", [], 0, "LEFT JOIN pedidos y filtro WHERE pedidos.id IS NULL, cuidando claves y duplicados."),
+    q("0226", "game", "Detecta el fallo: varios telefonos en una sola columna.", [], 0, "Rompe atomicidad; conviene tabla cliente_telefono con una fila por telefono."),
+    q("0491", "game", "Reto DOM: datos externos sin XSS.", [], 0, "Crear nodos y usar textContent; evitar innerHTML con datos no confiables."),
+    q("0491", "game", "Reto responsive: una botonera se sale en movil.", [], 0, "Usa flex-wrap o grid, minmax, textos mas cortos, overflow controlado y prueba en viewport real."),
+    q("0492", "game", "Reto API: convierte guardar perfil en endpoint defendible.", [], 0, "PATCH/PUT, auth, autorizacion, validacion, update parametrizado, errores seguros y respuesta clara."),
+    q("0492", "game", "Reto seguridad: que no debe salir en un error.", [], 0, "Stack trace, secretos, SQL, rutas internas, variables de entorno y datos personales innecesarios."),
+    q("0493", "game", "Reto release: pasos antes y despues de Vercel.", [], 0, "Build, variables, commit, deploy, smoke test, logs, rollback preparado y documentacion."),
+    q("0493", "game", "Reto Git: aparece un conflicto.", [], 0, "Entender ambos cambios, resolver manualmente, probar, revisar diff y commitear la resolucion.")
   );
 
   const extraFlash = {
@@ -370,10 +381,10 @@
     const correct = qs.reduce((sum, item) => sum + state.q[item.id].c, 0);
     const testScore = answered ? correct / answered : 0;
     const memoryScore = flashMemoryScore(id);
-    const confidence = avg((modById(id).must || []).map((_, i) => state.confidence[`${id}-${i}`] || 0)) / 4;
     const activity = (Math.min(state.oral[id] || 0, 4) + Math.min(state.practice[id] || 0, 4) + Math.min(state.contingency[id] || 0, 3)) / 11;
     const ev = evidenceScore(id);
-    return Math.round((testScore * .30 + Math.min(answered / 20, 1) * .10 + memoryScore * .16 + confidence * .20 + activity * .14 + ev * .10) * 100);
+    const writtenScore = Math.min(Object.keys(state.written || {}).filter((key) => key.includes(id) && state.written[key]).length / 5, 1);
+    return Math.round((testScore * .34 + Math.min(answered / 20, 1) * .10 + memoryScore * .20 + writtenScore * .14 + activity * .14 + ev * .08) * 100);
   }
 
   function flashMemoryScore(id) {
@@ -404,11 +415,9 @@
     const answered = qs.reduce((sum, item) => sum + state.q[item.id].a, 0);
     const correct = qs.reduce((sum, item) => sum + state.q[item.id].c, 0);
     const accuracy = answered ? correct / answered : 0;
-    const confidenceOk = (modById(id).must || []).every((_, i) => (state.confidence[`${id}-${i}`] || 0) >= 4);
     return {
       answered,
       accuracy,
-      confidenceOk,
       oral: state.oral[id] || 0,
       practice: state.practice[id] || 0,
       contingency: state.contingency[id] || 0,
@@ -424,7 +433,6 @@
       ["20 test", s.answered >= 20],
       ["90% acierto", s.accuracy >= .9],
       ["Temario aprendido", s.memory >= .9],
-      ["Criterios al 4/4", s.confidenceOk],
       ["3 orales", s.oral >= 3],
       ["5 escritas", s.written >= 5],
       ["3 practicas", s.practice >= 3],
@@ -498,12 +506,16 @@
       <div class="notice">Despues de leer: marca el tema, haz el test del tema y escribe una respuesta sin mirar. Ese ciclo es el que mas se parece a defenderte alli.</div>
       <section class="topicIndex" aria-label="Indice completo del temario">
         <div class="panelHead"><h3>Todo el temario de este modulo</h3><span class="tag">${allTopics.length} temas</span></div>
-        <div class="topicGrid">
-          ${allTopics.map((item, i) => `<button class="topicJump ${item.id === topic.id ? "active" : ""}" data-topic-jump="${esc(item.id)}">
-            <span>Tema ${i + 1}</span>
-            <strong>${esc(item.title)}</strong>
-            <small>${esc(item.intro)}</small>
-          </button>`).join("")}
+        <div class="topicList">
+          ${allTopics.map((item, i) => `<section class="topicBlock ${item.id === topic.id ? "active" : ""}" id="topic-${esc(item.id)}">
+            <div class="topicBlockHead">
+              <span>Tema ${i + 1}</span>
+              <button class="miniBtn" data-topic-jump="${esc(item.id)}">Abrir arriba</button>
+            </div>
+            <h3>${esc(item.title)}</h3>
+            <p>${esc(item.body)}</p>
+            <ul class="memoryList">${item.memory.map((point) => `<li>${esc(point)}</li>`).join("")}</ul>
+          </section>`).join("")}
         </div>
       </section>
     </article>`;
@@ -567,6 +579,7 @@
   function renderModule() {
     const id = els.moduleSelect.value || modules[0].id;
     const mod = modById(id);
+    const practices = questions.filter((item) => item.ecp === id && ["practice", "contingency", "game"].includes(item.type));
     els.moduleDetail.innerHTML = `
       <div class="moduleGrid">
         <article class="moduleCard">
@@ -576,9 +589,9 @@
           <div class="tagLine">${mod.must.map((t, i) => `<span class="tag">Criterio ${i + 1}</span>`).join("")}</div>
         </article>
         <article class="moduleCard">
-          <h3>Autodiagnostico por criterio</h3>
-          <div class="rubricList">
-            ${mod.must.map((item, i) => rubric(id, i, item)).join("")}
+          <h3>Practicas que te pueden pedir</h3>
+          <div class="lessonList">
+            ${practices.slice(0, 8).map((item) => `<div class="lesson"><strong>${esc(labelType(item.type))}</strong><p>${esc(item.prompt)}</p></div>`).join("")}
           </div>
         </article>
       </div>
@@ -609,10 +622,19 @@
     `).join("");
   }
 
+  function activityPool(mode, moduleId) {
+    const inModule = (item) => moduleId === "all" || item.ecp === moduleId;
+    if (mode === "written") {
+      const ids = moduleId === "all" ? modules.map((m) => m.id) : [moduleId];
+      return ids.flatMap((id) => writtenPool(id)).map((item) => Object.assign({}, item, { type: "written" }));
+    }
+    return questions.filter((item) => item.type === mode && inModule(item));
+  }
+
   function pickActivity() {
     const mode = els.trainMode.value;
     const moduleId = els.trainModule.value;
-    const pool = questions.filter((item) => item.type === mode && (moduleId === "all" || item.ecp === moduleId));
+    const pool = activityPool(mode, moduleId);
     const sorted = pool.slice().sort((a, b) => ((state.q[a.id]?.c || 0) / Math.max(state.q[a.id]?.a || 1, 1)) - ((state.q[b.id]?.c || 0) / Math.max(state.q[b.id]?.a || 1, 1)));
     renderActivity(sorted[Math.floor(Math.random() * Math.min(sorted.length, 6))] || pool[0]);
   }
@@ -648,10 +670,10 @@
         <article class="activityCard" data-open="${esc(item.id)}">
           <div class="tagLine"><span class="tag">${esc(mod.code)}</span><span class="tag">${labelType(item.type)}</span></div>
           <h2>${esc(item.prompt)}</h2>
-          <textarea placeholder="Escribe tu respuesta como si estuvieras delante del asesor/evaluador"></textarea>
+          <textarea placeholder="${item.type === "game" ? "Resuelve el reto rapido paso a paso" : "Escribe tu respuesta como si estuvieras delante del asesor/evaluador"}"></textarea>
           <div class="rowActions">
-            <button class="primaryBtn compact" data-open-done="${esc(item.type)}" data-module="${esc(item.ecp)}">La defenderia bien</button>
-            <button class="secondaryBtn compact" data-show-feedback>Ver respuesta esperada</button>
+            <button class="primaryBtn compact" data-open-done="${esc(item.type)}" data-module="${esc(item.ecp)}">He respondido</button>
+            <button class="secondaryBtn compact" data-show-feedback>Ver solucion guia</button>
           </div>
           <div class="feedback hidden">${esc(item.explain)}</div>
         </article>`;
@@ -659,7 +681,7 @@
   }
 
   function labelType(type) {
-    return { test: "Test", oral: "Entrevista", practice: "Caso practico", contingency: "Contingencia" }[type] || type;
+    return { test: "Test", written: "Escrita", oral: "Entrevista", practice: "Caso practico", contingency: "Contingencia", game: "Minijuego" }[type] || type;
   }
 
   function answerQuestion(card, selected) {
@@ -693,8 +715,9 @@
   function markOpen(type, moduleId) {
     todayStudy();
     if (type === "oral") state.oral[moduleId] = (state.oral[moduleId] || 0) + 1;
-    if (type === "practice") state.practice[moduleId] = (state.practice[moduleId] || 0) + 1;
+    if (type === "practice" || type === "game") state.practice[moduleId] = (state.practice[moduleId] || 0) + 1;
     if (type === "contingency") state.contingency[moduleId] = (state.contingency[moduleId] || 0) + 1;
+    if (type === "written") state.written[`${moduleId}-written-${Date.now()}`] = true;
     save();
     pickActivity();
   }
@@ -723,7 +746,8 @@
   }
 
   function startExam() {
-    currentExam = { i: 0, right: 0, items: shuffle(questions).slice(0, 30) };
+    const writtenItems = modules.flatMap((m) => writtenPool(m.id).slice(0, 4));
+    currentExam = { i: 0, right: 0, items: shuffle([...questions, ...writtenItems]).slice(0, 35) };
     renderExam();
   }
 
@@ -742,7 +766,7 @@
       <div class="examHeader"><strong>${ex.i + 1}/${ex.items.length}</strong><span>${esc(modById(item.ecp).code)} · ${labelType(item.type)}</span></div>
       <article class="activityCard" data-exam="${esc(item.id)}">
         <h2>${esc(item.prompt)}</h2>
-        ${hasOptions ? `<div class="optionList">${item.options.map((o, i) => `<button class="optionBtn" data-exam-answer="${i}">${esc(o)}</button>`).join("")}</div>` : `<textarea placeholder="Respuesta oral/practica"></textarea><button class="primaryBtn compact" data-exam-open>La defenderia bien</button>`}
+        ${hasOptions ? `<div class="optionList">${item.options.map((o, i) => `<button class="optionBtn" data-exam-answer="${i}">${esc(o)}</button>`).join("")}</div>` : `<textarea placeholder="Respuesta escrita, oral o practica"></textarea><button class="primaryBtn compact" data-exam-open>He respondido</button>`}
         <div class="feedback hidden">${esc(item.explain)}</div>
       </article>`;
   }
@@ -763,8 +787,9 @@
     } else {
       ex.right += 1;
       if (item.type === "oral") state.oral[item.ecp] = (state.oral[item.ecp] || 0) + 1;
-      if (item.type === "practice") state.practice[item.ecp] = (state.practice[item.ecp] || 0) + 1;
+      if (item.type === "practice" || item.type === "game") state.practice[item.ecp] = (state.practice[item.ecp] || 0) + 1;
       if (item.type === "contingency") state.contingency[item.ecp] = (state.contingency[item.ecp] || 0) + 1;
+      if (item.type === "written") state.written[`${item.ecp}-written-${Date.now()}`] = true;
     }
     ex.i += 1;
     renderExam();
@@ -814,7 +839,7 @@
       <h2>${esc(item.prompt)}</h2>
       <textarea placeholder="Escribe como responderias alli. Minimo recomendado: 8-12 lineas con definicion, pasos, seguridad y verificacion."></textarea>
       <div class="rubricBox">
-        <div class="lesson"><strong>Rubrica de autocorreccion</strong><p>${esc(item.explain)}</p></div>
+        <div class="lesson"><strong>Solucion guia</strong><p>${esc(item.explain)}</p></div>
         <ul class="memoryList">
           <li>He definido el concepto sin rodeos.</li>
           <li>He explicado pasos concretos, no solo teoria.</li>
@@ -833,9 +858,7 @@
   function markWrittenDone() {
     const box = els.writtenBox.querySelector("[data-written]");
     if (!box) return;
-    const moduleId = box.dataset.module;
     state.written[box.dataset.written] = true;
-    state.oral[moduleId] = (state.oral[moduleId] || 0) + 1;
     todayStudy();
     save();
     renderWritten();
@@ -904,7 +927,6 @@
     $("newWrittenBtn").addEventListener("click", renderWritten);
     $("showRubricBtn").addEventListener("click", showWrittenRubric);
     $("markWrittenBtn").addEventListener("click", markWrittenDone);
-    $("startTodayBtn").addEventListener("click", () => { showView("trainer"); todayStudy(); pickWeakTest(); save(); });
     $("diagnosticBtn").addEventListener("click", startDiagnostic);
     $("markDayBtn").addEventListener("click", () => { todayStudy(); save(); });
     $("weakBtn").addEventListener("click", () => {
@@ -937,12 +959,14 @@
       els.installBtn.classList.add("hidden");
     });
     if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js").catch(() => {});
+    const initialView = new URLSearchParams(location.search).get("view");
+    if (initialView && $(initialView)) showView(initialView);
   }
 
   function showView(id) {
     document.querySelectorAll(".view").forEach((v) => v.classList.toggle("active", v.id === id));
     document.querySelectorAll(".navItem").forEach((b) => b.classList.toggle("active", b.dataset.view === id));
-    els.title.textContent = ({ dashboard: "Panel de mando", roadmap: "Ruta de estudio", study: "Temario para leer", modules: "Modulos ECP", trainer: "Entrenamiento", written: "Respuesta escrita", exam: "Simulacro", evidence: "Evidencias" })[id] || "PEAC Trainer";
+    els.title.textContent = ({ dashboard: "Inicio", roadmap: "Ruta de estudio", study: "Temario completo", modules: "Practicas", trainer: "Pruebas", written: "Respuesta escrita", exam: "Simulacro realista", evidence: "Evidencias" })[id] || "PEAC Trainer";
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
