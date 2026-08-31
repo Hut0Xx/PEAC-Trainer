@@ -25,6 +25,7 @@ body {
 }
 button, select, textarea { font: inherit; }
 button { cursor: pointer; touch-action: manipulation; }
+button:disabled { opacity: .62; cursor: default; }
 .appShell { display: grid; grid-template-columns: 270px minmax(0, 1fr); min-height: 100vh; }
 .rail {
   position: sticky;
@@ -132,6 +133,7 @@ h3 { margin: 0; font-size: 17px; }
 }
 .checkBtn.done { color: #050505; background: #fff; border-color: transparent; }
 .toolbar { margin-bottom: 14px; }
+.studyLayout { display: grid; gap: 14px; }
 select, textarea {
   min-height: 44px;
   border: 1px solid var(--line);
@@ -173,9 +175,8 @@ textarea { width: 100%; min-height: 130px; resize: vertical; line-height: 1.45; 
   background: #111;
 }
 .topicHero h2 { font-size: 28px; line-height: 1.1; margin-bottom: 10px; }
+.topicReader { display: grid; gap: 12px; }
 .topicText { color: var(--ink); line-height: 1.7; font-size: 17px; }
-.memoryList { display: grid; gap: 9px; margin: 0; padding: 0; list-style: none; }
-.memoryList li { padding: 11px; border: 1px solid var(--line); border-radius: 8px; background: rgba(255,255,255,.045); line-height: 1.45; }
 .topicIndex { display: grid; gap: 10px; }
 .topicGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
 .topicList { display: grid; gap: 12px; }
@@ -208,7 +209,7 @@ textarea { width: 100%; min-height: 130px; resize: vertical; line-height: 1.45; 
 .topicJump strong { font-size: 16px; line-height: 1.2; }
 .topicJump small { color: var(--muted); line-height: 1.35; }
 .writtenPrompt { display: grid; gap: 12px; }
-.writtenPrompt textarea { min-height: 260px; font-size: 16px; }
+.writtenPrompt textarea { min-height: 230px; font-size: 16px; }
 .rubricBox { display: none; }
 .rubricBox.show { display: grid; gap: 9px; }
 .resultBox:empty { display: none; }
@@ -218,7 +219,12 @@ textarea { width: 100%; min-height: 130px; resize: vertical; line-height: 1.45; 
 }
 .optionBtn.correct { border-color: #fff; background: #252525; }
 .optionBtn.wrong { border-color: #777; background: #151515; }
+.primaryBtn.correct, .secondaryBtn.correct { color: #050505; background: #fff; border-color: #fff; }
+.primaryBtn.wrong, .secondaryBtn.wrong { color: #fff; background: #242424; border-color: #777; }
+.nextBtn { margin-top: 12px; }
+.needsAnswer { border-color: #fff; box-shadow: 0 0 0 2px rgba(255,255,255,.18); }
 .feedback { margin-top: 12px; padding: 13px; border-left: 3px solid #fff; background: #181818; border-radius: 6px; line-height: 1.5; }
+.feedback p { margin: 6px 0 0; color: var(--ink); }
 .rubric { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; }
 .scoreBtns { display: grid; grid-template-columns: repeat(4, 34px); gap: 5px; }
 .scoreBtns button { min-height: 34px; border-radius: 7px; border: 1px solid var(--line); background: rgba(255,255,255,.05); color: var(--ink); }
@@ -265,5 +271,5 @@ textarea { width: 100%; min-height: 130px; resize: vertical; line-height: 1.45; 
   .flashCard h2 { font-size: 24px; }
   .topicHero h2 { font-size: 24px; }
   .topicText { font-size: 16px; }
-  .writtenPrompt textarea { min-height: 320px; }
+  .writtenPrompt textarea { min-height: 240px; }
 }

@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  const STORE = "peac-trainer-pro-v8";
+  const STORE = "peac-trainer-pro-v9";
   const modules = [
     {
       id: "0223",
@@ -367,9 +367,20 @@
   function flashcardsFor(id) {
     const mod = modById(id);
     const lessonCards = mod.lessons.map(([front, back]) => ({ id: `${id}-lesson-${front}`, ecp: id, front, back }));
-    const criteriaCards = mod.must.map((item, i) => ({ id: `${id}-must-${i}`, ecp: id, front: `Criterio defendible ${i + 1}`, back: item }));
+    const criteriaCards = mod.must.map((item, i) => ({ id: `${id}-must-${i}`, ecp: id, front: criterionTitle(id, i, item), back: item }));
     const extraCards = (extraFlash[id] || []).map(([front, back]) => ({ id: `${id}-extra-${front}`, ecp: id, front, back }));
     return [...lessonCards, ...criteriaCards, ...extraCards];
+  }
+
+  function criterionTitle(id, i, item) {
+    const titles = {
+      "0223": ["Arquitectura de un equipo", "Usuarios y permisos", "Diagnostico de incidencias", "Copias y restauracion", "Informe tecnico"],
+      "0226": ["Entidades y relaciones", "Tablas y restricciones", "Consultas SQL complejas", "Transacciones y seguridad SQL", "Indices y pruebas de datos"],
+      "0491": ["HTML semantico", "CSS responsive", "JavaScript y DOM", "APIs en cliente", "Seguridad XSS"],
+      "0492": ["Diseno de endpoints", "Validacion en servidor", "Autenticacion y permisos", "Persistencia segura", "Errores y logs"],
+      "0493": ["Flujo Git", "Tipos de pruebas", "Despliegue y rollback", "Documentacion tecnica", "Incidencias postdeploy"]
+    };
+    return (titles[id] && titles[id][i]) || item.split(" ").slice(0, 4).join(" ");
   }
 
   function allFlashcards() {
@@ -377,7 +388,7 @@
   }
 
   function scoreModule(id) {
-    const qs = questions.filter((item) => item.ecp === id && state.q[item.id]);
+    const qs = testQuestionsFor(id).filter((item) => state.q[item.id]);
     const answered = qs.reduce((sum, item) => sum + state.q[item.id].a, 0);
     const correct = qs.reduce((sum, item) => sum + state.q[item.id].c, 0);
     const testScore = answered ? correct / answered : 0;
@@ -395,38 +406,148 @@
 
   function studyTopicsFor(id) {
     const mod = modById(id);
-    return flashcardsFor(id).map((card, i) => ({
-      id: card.id,
-      ecp: id,
-      title: card.front,
-      intro: card.back,
-      body: topicBody(mod, card, i),
-      memory: topicBullets(mod, card, i),
-      testIds: questions.filter((q) => q.ecp === id && q.type === "test").slice(i % 3, (i % 3) + 3).map((q) => q.id)
-    }));
+    return flashcardsFor(id).map((card, i) => {
+      const paragraphs = topicParagraphs(mod, card, i);
+      return {
+        id: card.id,
+        ecp: id,
+        title: card.front,
+        intro: card.back,
+        paragraphs,
+        summary: paragraphs[0],
+        answer: topicHumanAnswer(mod, card, i),
+        testIds: questions.filter((q) => q.ecp === id && q.type === "test").slice(i % 3, (i % 3) + 3).map((q) => q.id)
+      };
+    });
   }
 
-  function topicBody(mod, card, i) {
-    const examples = questions.filter((q) => q.ecp === mod.id && q.type !== "test").slice(i % 4, (i % 4) + 2).map((q) => q.prompt.toLowerCase());
-    return `${card.back} Este punto pertenece a ${mod.title}. Estudialo entendiendo para que sirve, en que situaciones aparece y que problema resuelve. En una prueba PEAC te lo pueden pedir como pregunta teorica, caso practico o explicacion de una incidencia. Ejemplos relacionados: ${examples.join("; ")}.`;
-  }
-
-  function topicBullets(mod, card, i) {
+  function topicParagraphs(mod, card, i) {
     const must = mod.must[i % mod.must.length];
     const lesson = mod.lessons[(i + 1) % mod.lessons.length];
-    const evidence = mod.evidence[i % mod.evidence.length];
-    const practice = questions.find((q) => q.ecp === mod.id && q.type === "practice" && q.prompt !== card.front) || questions.find((q) => q.ecp === mod.id && q.type === "contingency");
+    const practice = questions.find((q) => q.ecp === mod.id && q.type === "practice") || questions.find((q) => q.ecp === mod.id && q.type === "contingency");
+    const angle = {
+      "0223": "En sistemas informaticos casi todo se entiende mejor si lo miras como una cadena: hardware, sistema operativo, red, permisos, servicios y datos. Cuando una pieza falla, no conviene tocar al azar; primero hay que localizar donde esta el fallo y despues comprobarlo con una prueba concreta.",
+      "0226": "En bases de datos relacionales no basta con recordar palabras SQL. Hay que saber pasar de una necesidad real a tablas, claves, restricciones y consultas que devuelvan exactamente lo que se pide, manteniendo la integridad de los datos.",
+      "0491": "En cliente trabajas con lo que ve y toca la persona usuaria: HTML, CSS, JavaScript, formularios, eventos, datos que vienen de una API y estados de la interfaz. Lo importante es que la pantalla sea usable, responsive, accesible y segura.",
+      "0492": "En servidor cada peticion debe pasar por un recorrido claro: entrada, autenticacion si aplica, autorizacion, validacion, accion, acceso a datos, respuesta y log. El servidor es quien protege de verdad la aplicacion.",
+      "0493": "En implantacion y verificacion importa el proceso completo: versionar, probar, desplegar, comprobar, documentar y saber reaccionar si algo falla. No se trata solo de que la web abra, sino de poder mantenerla con metodo."
+    }[mod.id];
+
     return [
-      `Idea clave: ${card.back}`,
-      `Relacion con el ECP: ${must}`,
-      `Tema conectado: ${lesson[0]} - ${lesson[1]}`,
-      `Practica posible: ${practice ? practice.prompt : "Explicarlo con un ejemplo tecnico propio."}`,
-      `Evidencia que puedes aportar: ${evidence}`
+      `${card.front}. ${card.back}`,
+      angle,
+      `Para defender este tema en PEAC tienes que poder explicarlo con tus palabras y conectarlo con una accion real: ${must} Tambien es util relacionarlo con ${lesson[0].toLowerCase()}, porque en una prueba suelen mezclar conceptos en vez de preguntarlos aislados.`,
+      `Si te lo convierten en practica, responde ordenando la situacion, lo que harias, como comprobarias el resultado y que dejarias documentado. Un ejemplo cercano seria: ${practice ? practice.prompt.toLowerCase() : "resolver el caso con pasos claros y una comprobacion final"}.`
     ];
   }
 
+  function topicHumanAnswer(mod, card, i) {
+    const must = mod.must[i % mod.must.length].replace(/\.$/, "");
+    return `Yo lo responderia asi: ${card.front} es un punto importante de ${mod.code} porque ${card.back} En un caso real no lo dejaria en teoria; explicaria que lo aplico con pasos ordenados, comprobando el resultado y dejando evidencia de lo hecho. Para que la respuesta suene defendible, cerraria diciendo que debo ser capaz de ${must.toLowerCase()}.`;
+  }
+
+  function topicWrittenItem(topic) {
+    return {
+      id: `written-${topic.id}`,
+      ecp: topic.ecp,
+      topicId: topic.id,
+      type: "written",
+      prompt: `Explica con tus palabras: ${topic.title}.`,
+      options: [],
+      answer: 0,
+      explain: topic.answer
+    };
+  }
+
+  function topicOpenItemsFor(topic) {
+    return [
+      topicWrittenItem(topic),
+      {
+        id: `written-case-${topic.id}`,
+        ecp: topic.ecp,
+        topicId: topic.id,
+        type: "written",
+        prompt: `Te ponen un caso practico sobre ${topic.title}. Escribe como lo resolverias.`,
+        options: [],
+        answer: 0,
+        explain: `${topic.answer} Si fuese una practica, anadiria el orden de trabajo: entender el contexto, aplicar el cambio con cuidado, probarlo con un dato o una accion real y dejar anotado que se ha comprobado.`
+      },
+      {
+        id: `written-interview-${topic.id}`,
+        ecp: topic.ecp,
+        topicId: topic.id,
+        type: "written",
+        prompt: `Te preguntan en entrevista: que sabes de ${topic.title}?`,
+        options: [],
+        answer: 0,
+        explain: `${topic.answer} Lo diria con naturalidad, sin recitar, usando un ejemplo corto para que se vea que no me lo se solo de memoria.`
+      }
+    ];
+  }
+
+  function topicTestsFor(moduleId) {
+    return studyTopicsFor(moduleId).map((topic, i) => ({
+      id: `topic-test-${topic.id}`,
+      ecp: moduleId,
+      topicId: topic.id,
+      type: "test",
+      prompt: `Tema ${i + 1}: sobre ${topic.title}, que respuesta defenderias mejor?`,
+      options: [
+        topic.intro,
+        "Basta con nombrarlo sin explicar como se aplica.",
+        "Solo importa si aparece exactamente igual en una pregunta teorica.",
+        "Es mejor evitarlo y hablar de otro tema mas general."
+      ],
+      answer: 0,
+      explain: `La respuesta defendible es la primera: ${topic.intro}`
+    }));
+  }
+
+  function testQuestionsFor(moduleId) {
+    const ids = moduleId === "all" ? modules.map((m) => m.id) : [moduleId];
+    return ids.flatMap((id) => [
+      ...questions.filter((item) => item.ecp === id && item.type === "test"),
+      ...topicTestsFor(id)
+    ]);
+  }
+
+  function allQuestionPool() {
+    return [
+      ...questions,
+      ...modules.flatMap((m) => topicTestsFor(m.id))
+    ];
+  }
+
+  function activityItemById(id) {
+    return allQuestionPool().find((item) => item.id === id)
+      || modules.flatMap((m) => writtenPool(m.id)).find((item) => item.id === id);
+  }
+
+  function topicById(id) {
+    return modules.flatMap((m) => studyTopicsFor(m.id)).find((topic) => topic.id === id);
+  }
+
+  function topicForQuestion(item) {
+    if (!item) return null;
+    if (item.topicId) return topicById(item.topicId);
+    if (item.id && item.id.startsWith("written-")) return topicById(item.id.slice("written-".length));
+    if (topicScope) {
+      const scoped = topicById(topicScope);
+      if (scoped && scoped.ecp === item.ecp) return scoped;
+    }
+    const topics = studyTopicsFor(item.ecp);
+    const sameType = questions.filter((q) => q.ecp === item.ecp && q.type === item.type);
+    const index = sameType.findIndex((q) => q.id === item.id);
+    return topics[(index >= 0 ? index : 0) % topics.length] || null;
+  }
+
+  function topicTag(item) {
+    const topic = topicForQuestion(item);
+    return topic ? `<span class="tag">Tema: ${esc(topic.title)}</span>` : "";
+  }
+
   function moduleStats(id) {
-    const qs = questions.filter((item) => item.ecp === id && item.type === "test" && state.q[item.id]);
+    const qs = testQuestionsFor(id).filter((item) => state.q[item.id]);
     const answered = qs.reduce((sum, item) => sum + state.q[item.id].a, 0);
     const correct = qs.reduce((sum, item) => sum + state.q[item.id].c, 0);
     const accuracy = answered ? correct / answered : 0;
@@ -510,26 +631,21 @@
     if (!topic) return;
     els.studyContent.innerHTML = `<article class="topicArticle" data-topic="${esc(topic.id)}">
       <div class="topicHero">
-        <div class="flashMeta"><span class="tag">${esc(modById(topic.ecp).code)}</span><span class="tag">${state.topics[topic.id] || state.flash[topic.id] ? "Leido" : "Pendiente"}</span></div>
+        <div class="flashMeta"><span class="tag">${esc(modById(topic.ecp).code)}</span><span class="tag">Tema ${allTopics.findIndex((item) => item.id === topic.id) + 1}</span><span class="tag">${state.topics[topic.id] || state.flash[topic.id] ? "Leido" : "Pendiente"}</span></div>
         <h2>${esc(topic.title)}</h2>
-        <p class="topicText">${esc(topic.body)}</p>
+        <div class="topicReader">${topic.paragraphs.map((paragraph) => `<p class="topicText">${esc(paragraph)}</p>`).join("")}</div>
       </div>
-      <div class="lesson">
-        <strong>Ideas clave del tema</strong>
-        <ul class="memoryList">${topic.memory.map((item) => `<li>${esc(item)}</li>`).join("")}</ul>
-      </div>
-      <div class="notice">Despues de leer: marca el tema, haz el test del tema y escribe una respuesta sin mirar. Ese ciclo es el que mas se parece a defenderte alli.</div>
+      <div class="notice">Cuando termines este tema, usa los botones de arriba para hacer solo sus test o solo sus preguntas escritas.</div>
       <section class="topicIndex" aria-label="Indice completo del temario">
-        <div class="panelHead"><h3>Todo el temario de este modulo</h3><span class="tag">${allTopics.length} temas</span></div>
+        <div class="panelHead"><h3>Temario del modulo</h3><span class="tag">${allTopics.length} temas</span></div>
         <div class="topicList">
           ${allTopics.map((item, i) => `<section class="topicBlock ${item.id === topic.id ? "active" : ""}" id="topic-${esc(item.id)}">
             <div class="topicBlockHead">
               <span>Tema ${i + 1}</span>
-              <button class="miniBtn" data-topic-jump="${esc(item.id)}">Abrir arriba</button>
+              <button class="miniBtn" data-topic-jump="${esc(item.id)}">Leer</button>
             </div>
             <h3>${esc(item.title)}</h3>
-            <p>${esc(item.body)}</p>
-            <ul class="memoryList">${item.memory.map((point) => `<li>${esc(point)}</li>`).join("")}</ul>
+            <p>${esc(item.summary)}</p>
           </section>`).join("")}
         </div>
       </section>
@@ -646,6 +762,7 @@
       const topic = modules.flatMap((m) => studyTopicsFor(m.id)).find((item) => item.id === topicScope);
       if (topic) return topicActivityPool(topic, mode);
     }
+    if (mode === "test") return testQuestionsFor(moduleId);
     if (mode === "written") {
       const ids = moduleId === "all" ? modules.map((m) => m.id) : [moduleId];
       return ids.flatMap((id) => writtenPool(id)).map((item) => Object.assign({}, item, { type: "written" }));
@@ -656,6 +773,12 @@
   function topicActivityPool(topic, mode) {
     const topics = studyTopicsFor(topic.ecp);
     const index = Math.max(0, topics.findIndex((item) => item.id === topic.id));
+    if (mode === "test") {
+      const generated = topicTestsFor(topic.ecp).filter((item) => item.topicId === topic.id);
+      const related = topic.testIds.map((id) => questions.find((item) => item.id === id)).filter(Boolean);
+      return [...generated, ...related];
+    }
+    if (mode === "written") return topicOpenItemsFor(topic);
     const source = mode === "written"
       ? writtenPool(topic.ecp).map((item) => Object.assign({}, item, { type: "written" }))
       : questions.filter((item) => item.ecp === topic.ecp && item.type === mode);
@@ -668,6 +791,10 @@
     const mode = els.trainMode.value;
     const moduleId = els.trainModule.value;
     const pool = activityPool(mode, moduleId);
+    if (!pool.length) {
+      els.activityBox.innerHTML = `<article class="activityCard"><h2>No hay preguntas para esta seleccion.</h2><p>Cambia de modulo o usa todo mezclado.</p></article>`;
+      return;
+    }
     const sorted = pool.slice().sort((a, b) => ((state.q[a.id]?.c || 0) / Math.max(state.q[a.id]?.a || 1, 1)) - ((state.q[b.id]?.c || 0) / Math.max(state.q[b.id]?.a || 1, 1)));
     renderActivity(sorted[Math.floor(Math.random() * Math.min(sorted.length, 6))] || pool[0]);
   }
@@ -680,7 +807,7 @@
   }
 
   function reviewWrong() {
-    const wrong = questions.filter((item) => item.type === "test" && state.q[item.id] && state.q[item.id].c < state.q[item.id].a);
+    const wrong = testQuestionsFor("all").filter((item) => state.q[item.id] && state.q[item.id].c < state.q[item.id].a);
     if (!wrong.length) {
       els.activityBox.innerHTML = `<article class="activityCard"><h2>No tienes fallos pendientes.</h2><p>Haz un test exigente y aqui apareceran las preguntas que necesiten repaso.</p></article>`;
       return;
@@ -690,26 +817,30 @@
 
   function renderActivity(item) {
     const mod = modById(item.ecp);
-    const scopeLabel = topicScope ? modules.flatMap((m) => studyTopicsFor(m.id)).find((topic) => topic.id === topicScope)?.title : "";
+    const scopeLabel = topicScope ? topicById(topicScope)?.title : "";
+    const scopeTag = scopeLabel ? `<span class="tag">Solo tema elegido</span>` : `<span class="tag">Mezclado</span>`;
     if (item.options.length) {
       els.activityBox.innerHTML = `
         <article class="activityCard" data-qid="${esc(item.id)}">
-          <div class="tagLine"><span class="tag">${esc(mod.code)}</span><span class="tag">Test tecnico</span>${scopeLabel ? `<span class="tag">Solo tema: ${esc(scopeLabel)}</span>` : `<span class="tag">Todos mezclados</span>`}</div>
+          <div class="tagLine"><span class="tag">${esc(mod.code)}</span><span class="tag">Test tecnico</span>${topicTag(item)}${scopeTag}</div>
           <h2>${esc(item.prompt)}</h2>
           <div class="optionList">${optionButtons(item, "data-answer")}</div>
-          <div class="feedback hidden">${esc(item.explain)}</div>
+          <div class="feedback hidden">${esc(humanSolution(item))}</div>
         </article>`;
     } else {
       els.activityBox.innerHTML = `
-        <article class="activityCard" data-open="${esc(item.id)}">
-          <div class="tagLine"><span class="tag">${esc(mod.code)}</span><span class="tag">${labelType(item.type)}</span>${scopeLabel ? `<span class="tag">Solo tema: ${esc(scopeLabel)}</span>` : `<span class="tag">Todos mezclados</span>`}</div>
+        <article class="activityCard" data-open="${esc(item.id)}" data-type="${esc(item.type)}" data-module="${esc(item.ecp)}">
+          <div class="tagLine"><span class="tag">${esc(mod.code)}</span><span class="tag">${labelType(item.type)}</span>${topicTag(item)}${scopeTag}</div>
           <h2>${esc(item.prompt)}</h2>
-          <textarea placeholder="${item.type === "game" ? "Resuelve el reto rapido paso a paso" : "Escribe tu respuesta como si estuvieras delante del asesor/evaluador"}"></textarea>
           <div class="rowActions">
-            <button class="primaryBtn compact" data-open-done="${esc(item.type)}" data-module="${esc(item.ecp)}">He respondido</button>
-            <button class="secondaryBtn compact" data-show-feedback>Ver solucion guia</button>
+            <button class="primaryBtn compact" data-check-open>Resolver</button>
           </div>
-          <div class="feedback hidden">${esc(item.explain)}</div>
+          <textarea placeholder="${item.type === "game" ? "Resuelve el reto rapido paso a paso" : "Escribe tu respuesta como si estuvieras delante del asesor/evaluador"}"></textarea>
+          <div class="feedback hidden"><strong>Solucion ejemplo</strong><p>${esc(humanSolution(item))}</p></div>
+          <div class="rowActions hidden" data-open-score>
+            <button class="primaryBtn compact" data-open-result="right">He acertado</button>
+            <button class="secondaryBtn compact" data-open-result="wrong">He fallado</button>
+          </div>
         </article>`;
     }
   }
@@ -724,8 +855,16 @@
     return { test: "Test", written: "Escrita", oral: "Entrevista", practice: "Caso practico", contingency: "Contingencia", game: "Minijuego" }[type] || type;
   }
 
+  function humanSolution(item) {
+    if (item.options && item.options.length) return item.explain;
+    const topic = topicForQuestion(item);
+    const base = String(item.explain || "").replace(/^Respuesta fuerte:\s*/i, "");
+    const topicLine = topic ? ` Lo relacionaria con el tema "${topic.title}" para que se vea que no estoy respondiendo de memoria.` : "";
+    return `Yo contestaria algo asi: ${base}${topicLine} Cerraria la respuesta explicando como lo comprobaria en un caso real y que evidencia podria ensenar o documentar.`;
+  }
+
   function answerQuestion(card, selected) {
-    const item = questions.find((q) => q.id === card.dataset.qid);
+    const item = activityItemById(card.dataset.qid);
     if (!item || card.dataset.done) return;
     card.dataset.done = "1";
     todayStudy();
@@ -743,23 +882,62 @@
       btn.classList.toggle("wrong", n === selected && !ok);
     });
     card.querySelector(".feedback").classList.remove("hidden");
-    const next = document.createElement("button");
-    next.className = "primaryBtn compact";
-    next.style.marginTop = "12px";
-    next.textContent = "Siguiente pregunta";
-    next.addEventListener("click", pickActivity);
-    card.appendChild(next);
+    appendNextButton(card, pickActivity);
     save();
   }
 
-  function markOpen(type, moduleId) {
+  function appendNextButton(card, handler) {
+    if (card.querySelector("[data-next-generated]")) return;
+    const next = document.createElement("button");
+    next.className = "primaryBtn compact nextBtn";
+    next.textContent = "Siguiente pregunta";
+    next.dataset.nextGenerated = "1";
+    next.addEventListener("click", handler);
+    card.appendChild(next);
+  }
+
+  function resolveOpen(card) {
+    if (!card || card.dataset.done) return;
+    const text = card.querySelector("textarea");
+    if (text && !text.value.trim()) {
+      text.focus();
+      text.classList.add("needsAnswer");
+      text.placeholder = "Escribe primero tu respuesta. Despues pulsa Resolver.";
+      return;
+    }
+    text?.classList.remove("needsAnswer");
+    card.querySelector(".feedback")?.classList.remove("hidden");
+    card.querySelector("[data-open-score]")?.classList.remove("hidden");
+    const btn = card.querySelector("[data-check-open]");
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = "Resuelto";
+    }
+  }
+
+  function finishOpen(card, correct) {
+    if (!card || card.dataset.done) return;
+    const item = activityItemById(card.dataset.open) || { ecp: card.dataset.module, type: card.dataset.type, id: card.dataset.open };
+    card.dataset.done = "1";
     todayStudy();
-    if (type === "oral") state.oral[moduleId] = (state.oral[moduleId] || 0) + 1;
-    if (type === "practice" || type === "game") state.practice[moduleId] = (state.practice[moduleId] || 0) + 1;
-    if (type === "contingency") state.contingency[moduleId] = (state.contingency[moduleId] || 0) + 1;
-    if (type === "written") state.written[`${moduleId}-written-${Date.now()}`] = true;
+    state.answered += 1;
+    state.correct += correct ? 1 : 0;
+    if (correct) recordOpenSuccess(item);
+    card.querySelectorAll("[data-open-result]").forEach((btn) => {
+      const selected = btn.dataset.openResult === (correct ? "right" : "wrong");
+      btn.disabled = true;
+      btn.classList.toggle(correct ? "correct" : "wrong", selected);
+    });
+    appendNextButton(card, pickActivity);
     save();
-    pickActivity();
+  }
+
+  function recordOpenSuccess(item) {
+    const moduleId = item.ecp;
+    if (item.type === "oral") state.oral[moduleId] = (state.oral[moduleId] || 0) + 1;
+    if (item.type === "practice" || item.type === "game") state.practice[moduleId] = (state.practice[moduleId] || 0) + 1;
+    if (item.type === "contingency") state.contingency[moduleId] = (state.contingency[moduleId] || 0) + 1;
+    if (item.type === "written") state.written[`${moduleId}-${item.id}-${Date.now()}`] = true;
   }
 
   function startDiagnostic() {
@@ -787,8 +965,9 @@
 
   function startExam() {
     topicScope = null;
-    const writtenItems = modules.flatMap((m) => writtenPool(m.id).slice(0, 4));
-    currentExam = { i: 0, right: 0, items: shuffle([...questions, ...writtenItems]).slice(0, 35) };
+    const writtenItems = modules.flatMap((m) => writtenPool(m.id).slice(0, 6));
+    const openItems = questions.filter((item) => item.type !== "test");
+    currentExam = { i: 0, right: 0, items: shuffle([...testQuestionsFor("all"), ...openItems, ...writtenItems]).slice(0, 35) };
     renderExam();
   }
 
@@ -803,12 +982,13 @@
       return;
     }
     const hasOptions = item.options.length > 0;
+    const topic = topicForQuestion(item);
     els.examBox.innerHTML = `
-      <div class="examHeader"><strong>${ex.i + 1}/${ex.items.length}</strong><span>${esc(modById(item.ecp).code)} · ${labelType(item.type)}</span></div>
+      <div class="examHeader"><strong>${ex.i + 1}/${ex.items.length}</strong><span>${esc(modById(item.ecp).code)} · ${labelType(item.type)}${topic ? ` · Tema: ${esc(topic.title)}` : ""}</span></div>
       <article class="activityCard" data-exam="${esc(item.id)}">
         <h2>${esc(item.prompt)}</h2>
-        ${hasOptions ? `<div class="optionList">${optionButtons(item, "data-exam-answer")}</div>` : `<textarea placeholder="Respuesta escrita, oral o practica"></textarea><button class="primaryBtn compact" data-exam-open>He respondido</button>`}
-        <div class="feedback hidden">${esc(item.explain)}</div>
+        ${hasOptions ? `<div class="optionList">${optionButtons(item, "data-exam-answer")}</div>` : `<div class="rowActions"><button class="primaryBtn compact" data-exam-resolve>Resolver</button></div><textarea placeholder="Escribe primero. Despues pulsa Resolver y decide si la defenderias bien."></textarea><div class="rowActions hidden" data-exam-score><button class="primaryBtn compact" data-exam-open-result="right">He acertado</button><button class="secondaryBtn compact" data-exam-open-result="wrong">He fallado</button></div>`}
+        <div class="feedback hidden">${esc(humanSolution(item))}</div>
       </article>`;
   }
 
@@ -826,14 +1006,33 @@
       stat.c += ok ? 1 : 0;
       state.q[item.id] = stat;
     } else {
-      ex.right += 1;
-      if (item.type === "oral") state.oral[item.ecp] = (state.oral[item.ecp] || 0) + 1;
-      if (item.type === "practice" || item.type === "game") state.practice[item.ecp] = (state.practice[item.ecp] || 0) + 1;
-      if (item.type === "contingency") state.contingency[item.ecp] = (state.contingency[item.ecp] || 0) + 1;
-      if (item.type === "written") state.written[`${item.ecp}-written-${Date.now()}`] = true;
+      const ok = selected === true;
+      ex.right += ok ? 1 : 0;
+      state.answered += 1;
+      state.correct += ok ? 1 : 0;
+      if (ok) recordOpenSuccess(item);
     }
     ex.i += 1;
     renderExam();
+  }
+
+  function resolveExamOpen(card) {
+    if (!card) return;
+    const text = card.querySelector("textarea");
+    if (text && !text.value.trim()) {
+      text.focus();
+      text.classList.add("needsAnswer");
+      text.placeholder = "Escribe primero tu respuesta antes de resolver.";
+      return;
+    }
+    text?.classList.remove("needsAnswer");
+    card.querySelector(".feedback")?.classList.remove("hidden");
+    card.querySelector("[data-exam-score]")?.classList.remove("hidden");
+    const btn = card.querySelector("[data-exam-resolve]");
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = "Resuelto";
+    }
   }
 
   function shuffle(arr) {
@@ -861,13 +1060,7 @@
 
   function writtenPool(moduleId) {
     const base = questions.filter((item) => item.ecp === moduleId && item.type !== "test");
-    const topicPrompts = studyTopicsFor(moduleId).slice(0, 8).map((topic) => ({
-      id: `written-${topic.id}`,
-      ecp: moduleId,
-      type: "written",
-      prompt: `Explica por escrito: ${topic.title}. Incluye definicion, procedimiento, riesgos, verificacion y evidencia.`,
-      explain: topic.memory.join(" ")
-    }));
+    const topicPrompts = studyTopicsFor(moduleId).flatMap((topic) => topicOpenItemsFor(topic));
     return [...base, ...topicPrompts];
   }
 
@@ -876,33 +1069,57 @@
     const pool = writtenPool(moduleId);
     const item = pool[Math.floor(Math.random() * pool.length)];
     els.writtenBox.innerHTML = `<article class="writtenPrompt" data-written="${esc(item.id)}" data-module="${esc(moduleId)}">
-      <div class="flashMeta"><span class="tag">${esc(modById(moduleId).code)}</span><span class="tag">Sin opciones</span></div>
+      <div class="flashMeta"><span class="tag">${esc(modById(moduleId).code)}</span><span class="tag">Sin opciones</span>${topicTag(item)}</div>
       <h2>${esc(item.prompt)}</h2>
-      <textarea placeholder="Escribe como responderias alli. Minimo recomendado: 8-12 lineas con definicion, pasos, seguridad y verificacion."></textarea>
-      <div class="rubricBox">
-        <div class="lesson"><strong>Solucion guia</strong><p>${esc(item.explain)}</p></div>
-        <ul class="memoryList">
-          <li>He definido el concepto sin rodeos.</li>
-          <li>He explicado pasos concretos, no solo teoria.</li>
-          <li>He mencionado riesgos, seguridad o errores habituales.</li>
-          <li>He cerrado con verificacion, documentacion o evidencia.</li>
-        </ul>
+      <div class="rowActions">
+        <button class="primaryBtn compact" data-written-resolve>Resolver</button>
+      </div>
+      <textarea placeholder="Escribe como responderias alli, sin mirar la solucion. Intenta que sea natural y concreta."></textarea>
+      <div class="feedback hidden"><strong>Solucion ejemplo</strong><p>${esc(humanSolution(item))}</p></div>
+      <div class="rowActions hidden" data-written-score>
+        <button class="primaryBtn compact" data-written-result="right">He acertado</button>
+        <button class="secondaryBtn compact" data-written-result="wrong">He fallado</button>
       </div>
     </article>`;
     updateWrittenCount();
   }
 
-  function showWrittenRubric() {
-    els.writtenBox.querySelector(".rubricBox")?.classList.add("show");
+  function resolveWritten() {
+    const box = els.writtenBox.querySelector("[data-written]");
+    if (!box || box.dataset.done) return;
+    const text = box.querySelector("textarea");
+    if (text && !text.value.trim()) {
+      text.focus();
+      text.classList.add("needsAnswer");
+      text.placeholder = "Escribe primero tu respuesta. Luego pulsa Resolver.";
+      return;
+    }
+    text?.classList.remove("needsAnswer");
+    box.querySelector(".feedback")?.classList.remove("hidden");
+    box.querySelector("[data-written-score]")?.classList.remove("hidden");
+    const btn = box.querySelector("[data-written-resolve]");
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = "Resuelto";
+    }
   }
 
-  function markWrittenDone() {
+  function finishWritten(correct) {
     const box = els.writtenBox.querySelector("[data-written]");
-    if (!box) return;
-    state.written[box.dataset.written] = true;
+    if (!box || box.dataset.done || box.querySelector(".feedback")?.classList.contains("hidden")) return;
+    const item = activityItemById(box.dataset.written) || { id: box.dataset.written, ecp: box.dataset.module, type: "written" };
+    box.dataset.done = "1";
+    state.answered += 1;
+    state.correct += correct ? 1 : 0;
+    if (correct) recordOpenSuccess(item.type === "written" ? item : Object.assign({}, item, { type: "written" }));
     todayStudy();
     save();
-    renderWritten();
+    box.querySelectorAll("[data-written-result]").forEach((btn) => {
+      const selected = btn.dataset.writtenResult === (correct ? "right" : "wrong");
+      btn.disabled = true;
+      btn.classList.toggle(correct ? "correct" : "wrong", selected);
+    });
+    appendNextButton(box, renderWritten);
   }
 
   function updateWrittenCount() {
@@ -945,14 +1162,20 @@
       if (evd) { state.evidence[evd.dataset.evidence] = !state.evidence[evd.dataset.evidence]; save(); }
       const answer = ev.target.closest("[data-answer]");
       if (answer) answerQuestion(answer.closest("[data-qid]"), Number(answer.dataset.answer));
-      const openDone = ev.target.closest("[data-open-done]");
-      if (openDone) markOpen(openDone.dataset.openDone, openDone.dataset.module);
-      const feed = ev.target.closest("[data-show-feedback]");
-      if (feed) feed.closest(".activityCard").querySelector(".feedback").classList.remove("hidden");
+      const openResolve = ev.target.closest("[data-check-open]");
+      if (openResolve) resolveOpen(openResolve.closest("[data-open]"));
+      const openResult = ev.target.closest("[data-open-result]");
+      if (openResult) finishOpen(openResult.closest("[data-open]"), openResult.dataset.openResult === "right");
+      const writtenResolve = ev.target.closest("[data-written-resolve]");
+      if (writtenResolve) resolveWritten();
+      const writtenResult = ev.target.closest("[data-written-result]");
+      if (writtenResult) finishWritten(writtenResult.dataset.writtenResult === "right");
       const examAnswer = ev.target.closest("[data-exam-answer]");
       if (examAnswer) finishExamQuestion(Number(examAnswer.dataset.examAnswer));
-      const examOpen = ev.target.closest("[data-exam-open]");
-      if (examOpen) finishExamQuestion(0);
+      const examResolve = ev.target.closest("[data-exam-resolve]");
+      if (examResolve) resolveExamOpen(examResolve.closest("[data-exam]"));
+      const examOpenResult = ev.target.closest("[data-exam-open-result]");
+      if (examOpenResult) finishExamQuestion(examOpenResult.dataset.examOpenResult === "right");
     });
 
     els.moduleSelect.addEventListener("change", renderModule);
@@ -967,8 +1190,6 @@
     $("topicTestBtn").addEventListener("click", startTopicTest);
     $("topicWrittenBtn").addEventListener("click", startTopicWritten);
     $("newWrittenBtn").addEventListener("click", renderWritten);
-    $("showRubricBtn").addEventListener("click", showWrittenRubric);
-    $("markWrittenBtn").addEventListener("click", markWrittenDone);
     $("diagnosticBtn").addEventListener("click", startDiagnostic);
     $("markDayBtn").addEventListener("click", () => { todayStudy(); save(); });
     $("weakBtn").addEventListener("click", () => {

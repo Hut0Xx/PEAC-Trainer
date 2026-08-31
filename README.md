@@ -13,11 +13,12 @@ Aplicacion estatica preparada para Vercel y pensada para entrenar desde cero los
 - Logo propio y nueva interfaz optimizada para movil.
 - Inicio sencillo con accesos a temario, pruebas y simulacro.
 - Ruta de estudio en 4 fases, desde fundamentos hasta entrevista final.
-- Temario de lectura por temas, con ideas clave reales, practicas relacionadas y evidencias posibles.
-- Test del tema despues de estudiar, para practicar justo lo que acabas de leer.
+- Temario de lectura limpia por temas, sin fichas artificiales ni apartados raros.
+- Test del tema despues de estudiar, con etiqueta visible del tema que estas entrenando.
 - Entrenamiento por tema concreto o todos los temas mezclados.
 - Respuestas de test barajadas en cada intento.
-- Seccion de respuesta escrita sin opciones, con textarea largo y solucion guia.
+- Respuesta escrita con flujo cerrado: escribir, resolver, marcar acierto/fallo y pasar a la siguiente.
+- Soluciones guia redactadas como una respuesta humana defendible.
 - Entrenamiento mixto: test tecnico, pregunta escrita, entrevista, caso practico, contingencia y minijuego tecnico.
 - Simulacro realista con preguntas mezcladas de todos los formatos.
 - Semaforo "Apto PEAC" con requisitos estrictos: temario, test, escritas, oral, practica, contingencias y evidencias.

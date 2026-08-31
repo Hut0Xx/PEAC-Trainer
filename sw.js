@@ -1,4 +1,4 @@
-const CACHE="peac-trainer-pro-v8";
+const CACHE="peac-trainer-pro-v9";
 const CORE=["/","/index.html","/styles.css","/app.js","/logo.svg","/manifest.webmanifest","/icon-192.png","/icon-512.png","/apple-touch-icon.png"];
 self.addEventListener("install",event=>{
   event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(CORE)).then(()=>self.skipWaiting()));
